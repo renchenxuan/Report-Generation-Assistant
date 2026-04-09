@@ -452,6 +452,7 @@ workflow:
             internal_quality_actions, evidence_citation, audit_metrics。
             其中 audit_metrics 必含键：evidence_sufficiency, responsibility_confidence, risk_tips, hallucination_check。
             responsibility_confidence 必须是 0-100 的整数。
+            若该字段不符合约束，系统会自动校正并记录风险提示。
         - id: user-prompt
           role: user
           text: |
@@ -536,14 +537,23 @@ workflow:
               generated['audit_metrics'].setdefault('hallucination_check', '无')
 
               raw_confidence = generated['audit_metrics'].get('responsibility_confidence', 60)
-              confidence = raw_confidence
+              confidence = 60
+              corrected_confidence = False
               try:
-                  confidence = int(confidence)
+                  if isinstance(raw_confidence, str):
+                      confidence = int(float(raw_confidence.strip()))
+                  else:
+                      confidence = int(raw_confidence)
               except Exception:
                   confidence = 60
-              confidence = max(0, min(100, confidence))
+                  corrected_confidence = True
+
+              bounded = max(0, min(100, confidence))
+              if bounded != confidence:
+                  corrected_confidence = True
+              confidence = bounded
               generated['audit_metrics']['responsibility_confidence'] = confidence
-              if str(raw_confidence) != str(confidence):
+              if corrected_confidence:
                   generated['audit_metrics']['risk_tips'].append(
                       'responsibility_confidence 非法或越界，已自动校正到 0~100 整数范围。'
                   )
@@ -556,6 +566,10 @@ workflow:
                       '核心字段缺失：' + ', '.join(missing_required_fields)
                   )
 
+              audit_metrics = generated.get('audit_metrics', {})
+              section_payload = dict(generated)
+              section_payload.pop('audit_metrics', None)
+
               final_json = {
                   'report_id': report_id,
                   'basic_info': {
@@ -567,8 +581,8 @@ workflow:
                       'fault_count': fault_count,
                       'fault_description': fault_description
                   },
-                  'sections': generated,
-                  'audit_metrics': generated.get('audit_metrics', {}),
+                  'sections': section_payload,
+                  'audit_metrics': audit_metrics,
                   'ext_info': {
                       'retrieval_status': retrieval_status,
                       'fallback_notes': fallback_notes,
