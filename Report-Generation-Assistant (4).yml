@@ -452,7 +452,7 @@ workflow:
             internal_quality_actions, evidence_citation, audit_metrics。
             其中 audit_metrics 必含键：evidence_sufficiency, responsibility_confidence, risk_tips, hallucination_check。
             responsibility_confidence 必须是 0-100 的整数。
-            若该字段不符合约束，系统会自动校正并记录风险提示。
+            若该字段不符合约束，下游 assemble_final_json 节点会自动校正并记录风险提示。
         - id: user-prompt
           role: user
           text: |
@@ -491,6 +491,7 @@ workflow:
     - data:
         code: |
           import json
+          DEFAULT_CONFIDENCE = 60
 
           def main(
               llm_text: str,
@@ -515,7 +516,7 @@ workflow:
                       'temporary_measures': '【证据不足】需人工补充。',
                       'five_why_table': [],
                       'root_cause_summary': '【证据不足】需人工审核。',
-                      'responsibility_judgement': '【证据不足】【待人工审核】证据不足，仅建议方向。',
+                      'responsibility_judgement': '【证据不足】【待人工审核】仅建议责任方向。',
                       'corrective_actions': '【证据不足】需人工补充。',
                       'preventive_actions': '【证据不足】需人工补充。',
                       'customer_side_actions': '【证据不足】需人工补充。',
@@ -532,12 +533,12 @@ workflow:
               if 'audit_metrics' not in generated or not isinstance(generated['audit_metrics'], dict):
                   generated['audit_metrics'] = {}
               generated['audit_metrics'].setdefault('evidence_sufficiency', '中')
-              generated['audit_metrics'].setdefault('responsibility_confidence', 60)
+              generated['audit_metrics'].setdefault('responsibility_confidence', DEFAULT_CONFIDENCE)
               generated['audit_metrics'].setdefault('risk_tips', [])
               generated['audit_metrics'].setdefault('hallucination_check', '无')
 
-              raw_confidence = generated['audit_metrics'].get('responsibility_confidence', 60)
-              confidence = 60
+              raw_confidence = generated['audit_metrics'].get('responsibility_confidence', DEFAULT_CONFIDENCE)
+              confidence = DEFAULT_CONFIDENCE
               corrected_confidence = False
               try:
                   if isinstance(raw_confidence, str):
@@ -545,7 +546,7 @@ workflow:
                   else:
                       confidence = int(raw_confidence)
               except Exception:
-                  confidence = 60
+                  confidence = DEFAULT_CONFIDENCE
                   corrected_confidence = True
 
               bounded = max(0, min(100, confidence))
