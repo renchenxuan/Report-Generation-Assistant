@@ -11,9 +11,9 @@ workflow:
   conversation_variables: []
   environment_variables:
   - name: history_dataset_id
-    value: REPLACE_WITH_HISTORY_DATASET_ID
+    value: ''
   - name: product_dataset_id
-    value: REPLACE_WITH_PRODUCT_DATASET_ID
+    value: ''
   features:
     file_upload:
       enabled: false
