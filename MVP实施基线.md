@@ -39,7 +39,7 @@
 ```
 
 说明：`fault_time` 的 `format: date-time` 按 ISO 8601/RFC3339 时间戳校验。
-- 当前 DSL 预处理节点按常用子集校验（`YYYY-MM-DDTHH:MM:SSZ` 或带时区偏移格式），联调时应保证后端按该格式传入。
+- 当前 DSL 预处理节点按常用子集校验（`YYYY-MM-DDTHH:mm:ssZ` 或带时区偏移格式），联调时应保证后端按该格式传入。
 
 ### 2.2 assemble_final_json 校验规则
 - 严格按 Schema 校验。

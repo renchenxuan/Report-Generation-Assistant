@@ -54,7 +54,7 @@ workflow:
             - { label: device_model, variable: device_model, type: text-input, required: true }
             - { label: device_sn, variable: device_sn, type: text-input, required: false }
             - { label: fault_time, variable: fault_time, type: text-input, required: true }
-            - { label: fault_count, variable: fault_count, type: number, required: false }
+            - { label: fault_count, variable: fault_count, type: number, required: false, default: 1 }
             - { label: fault_description, variable: fault_description, type: paragraph, required: true }
             - { label: fault_cause, variable: fault_cause, type: paragraph, required: false }
             - { label: event_record_text, variable: event_record_text, type: paragraph, required: false }
@@ -123,6 +123,7 @@ workflow:
                 if not s:
                     return False
                 try:
+                    # 支持 Z 结尾与 ±HH:MM 时区偏移（RFC3339 常用子集）
                     datetime.fromisoformat(s.replace("Z", "+00:00"))
                     return True
                 except Exception:
@@ -391,7 +392,13 @@ workflow:
 
             def is_retrieval_empty(result):
                 # 同时兼容 Python/JSON 两类空值序列化结果
-                return (not result) or str(result).strip() in ["", "[]", "None", "null"]
+                if result is None:
+                    return True
+                if isinstance(result, str):
+                    return result.strip() in ["", "[]", "None", "null"]
+                if isinstance(result, (list, dict, tuple, set)):
+                    return len(result) == 0
+                return False
 
             def main(report_id, fact_summary, fallback_notes, history_result, product_result, customer_raw, five_why_raw, root_raw, solution_raw, polish_raw):
                 customer = parse_obj(customer_raw)
