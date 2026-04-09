@@ -648,17 +648,18 @@ workflow:
           \ [str(v)]\n\ndef safe_int(v, default=CONSERVATIVE_CONFIDENCE_DEFAULT):\n\
           \    try:\n        n = int(v)\n        return max(0, min(100, n))\n    except\
           \ (ValueError, TypeError):\n        return default\n\ndef is_retrieval_empty(result):\n\
-          \    # 同时兼容 Python/JSON 两类空值序列化结果\n    if result is None:\n        return\
-          \ True\n    if isinstance(result, str):\n        return result.strip() in\
-          \ [\"\", \"[]\", \"None\", \"null\"]\n    if isinstance(result, (list, dict,\
-          \ tuple, set)):\n        return len(result) == 0\n    return False\n\ndef\
-          \ main(report_id, fact_summary, fallback_notes, history_result, product_result,\
-          \ customer_raw, five_why_raw, root_raw, solution_raw, polish_raw):\n   \
-          \ customer = parse_obj(customer_raw)\n    five_why = parse_obj(five_why_raw)\n\
-          \    root = parse_obj(root_raw)\n    solution = parse_obj(solution_raw)\n\
-          \    polish = parse_obj(polish_raw)\n\n    history_empty = is_retrieval_empty(history_result)\n\
-          \    product_empty = is_retrieval_empty(product_result)\n    raw_confidence\
-          \ = root.get(\"responsibility_confidence\", None)\n    confidence = safe_int(raw_confidence,\
+          \    # 同时兼容 Python/JSON 两类空值序列化结果：None/null/空串/空数组文本（\"[]\"）\n    if result\
+          \ is None:\n        return True\n    if isinstance(result, str):\n     \
+          \   return result.strip() in [\"\", \"[]\", \"None\", \"null\"]\n    if\
+          \ isinstance(result, (list, dict, tuple, set)):\n        return len(result)\
+          \ == 0\n    return False\n\ndef main(report_id, fact_summary, fallback_notes,\
+          \ history_result, product_result, customer_raw, five_why_raw, root_raw,\
+          \ solution_raw, polish_raw):\n    customer = parse_obj(customer_raw)\n \
+          \   five_why = parse_obj(five_why_raw)\n    root = parse_obj(root_raw)\n\
+          \    solution = parse_obj(solution_raw)\n    polish = parse_obj(polish_raw)\n\
+          \n    history_empty = is_retrieval_empty(history_result)\n    product_empty\
+          \ = is_retrieval_empty(product_result)\n    raw_confidence = root.get(\"\
+          responsibility_confidence\", None)\n    confidence = safe_int(raw_confidence,\
           \ CONSERVATIVE_CONFIDENCE_DEFAULT)\n    risk_tips = ensure_list(root.get(\"\
           risk_tips\", []))\n    if raw_confidence is None:\n        risk_tips.append(f\"\
           【风险提示】responsibility_confidence 缺失，已按保守默认值{CONSERVATIVE_CONFIDENCE_DEFAULT}处理\"\
