@@ -1002,9 +1002,9 @@ workflow:
               score = DEFAULT_CONFIDENCE
               try:
                   if isinstance(v, str):
-                      score = int(round(float(v.strip())))
+                      score = round(float(v.strip()))
                   else:
-                      score = int(v)
+                      score = round(float(v))
               except (ValueError, TypeError):
                   score = DEFAULT_CONFIDENCE
                   corrected = True
