@@ -383,7 +383,7 @@ workflow:
                     return []
                 return [str(v)]
 
-            def safe_int(v, default=50):
+            def safe_int(v, default=30):
                 try:
                     n = int(v)
                     return max(0, min(100, n))
@@ -409,6 +409,11 @@ workflow:
 
                 history_empty = is_retrieval_empty(history_result)
                 product_empty = is_retrieval_empty(product_result)
+                raw_confidence = root.get("responsibility_confidence", None)
+                confidence = safe_int(raw_confidence, 30)
+                risk_tips = ensure_list(root.get("risk_tips", []))
+                if raw_confidence is None:
+                    risk_tips.append("【风险提示】responsibility_confidence 缺失，已按保守默认值30处理")
 
                 merged = {
                     "report_id": report_id,
@@ -426,8 +431,8 @@ workflow:
                     "factory_handling_plan": polish.get("factory_handling_plan") or solution.get("factory_handling_plan") or "【证据不足】",
                     "audit_metrics": {
                         "evidence_sufficiency": root.get("evidence_sufficiency", "中"),
-                        "responsibility_confidence": safe_int(root.get("responsibility_confidence", 60)),
-                        "risk_tips": ensure_list(root.get("risk_tips", [])),
+                        "responsibility_confidence": confidence,
+                        "risk_tips": risk_tips,
                         "hallucination_check": root.get("hallucination_check", "未检测")
                     },
                     "evidence_citation": {
