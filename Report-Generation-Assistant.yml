@@ -6,27 +6,36 @@ app:
   name: Report-Generation-Assistant
   use_icon_as_answer_icon: false
 kind: app
-version: 0.1.5
+version: 0.5.0
 workflow:
   conversation_variables: []
   environment_variables:
-    - name: history_dataset_id
-      value: REPLACE_WITH_HISTORY_DATASET_ID
-    - name: product_dataset_id
-      value: REPLACE_WITH_PRODUCT_DATASET_ID
+  - name: history_dataset_id
+    value: REPLACE_WITH_HISTORY_DATASET_ID
+  - name: product_dataset_id
+    value: REPLACE_WITH_PRODUCT_DATASET_ID
   features:
     file_upload:
       enabled: false
       allowed_file_extensions: []
       allowed_file_types: []
       allowed_file_upload_methods: []
-      number_limits: 0
+      number_limits: 3
       fileUploadConfig:
         image_file_size_limit: 10
         audio_file_size_limit: 50
         video_file_size_limit: 100
         file_size_limit: 15
         workflow_file_upload_limit: 10
+        batch_count_limit: 5
+        image_file_batch_limit: 10
+        single_chunk_attachment_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
     opening_statement: ''
     retriever_resource:
       enabled: true
@@ -39,452 +48,965 @@ workflow:
       enabled: false
     text_to_speech:
       enabled: false
+      language: ''
+      voice: ''
   graph:
     nodes:
-      - id: start_input
-        position: { x: 80, y: 280 }
-        data:
-          title: start_input
-          type: start
-          variables:
-            - { label: report_id, variable: report_id, type: text-input, required: false }
-            - { label: customer_name, variable: customer_name, type: text-input, required: false }
-            - { label: site_name, variable: site_name, type: text-input, required: false }
-            - { label: device_type, variable: device_type, type: text-input, required: false }
-            - { label: device_model, variable: device_model, type: text-input, required: true }
-            - { label: device_sn, variable: device_sn, type: text-input, required: false }
-            - { label: fault_time, variable: fault_time, type: text-input, required: true }
-            - { label: fault_count, variable: fault_count, type: integer, required: false, default: 1 }
-            - { label: fault_description, variable: fault_description, type: paragraph, required: true }
-            - { label: fault_cause, variable: fault_cause, type: paragraph, required: false }
-            - { label: event_record_text, variable: event_record_text, type: paragraph, required: false }
-            - { label: waveform_analysis_text, variable: waveform_analysis_text, type: paragraph, required: false }
-            - { label: overall_appearance_text, variable: overall_appearance_text, type: paragraph, required: false }
-            - { label: upper_board_text, variable: upper_board_text, type: paragraph, required: false }
-            - { label: lower_board_text, variable: lower_board_text, type: paragraph, required: false }
-            - { label: power_device_measure_text, variable: power_device_measure_text, type: paragraph, required: false }
-            - { label: site_research_text, variable: site_research_text, type: paragraph, required: false }
+    - id: start_input
+      position:
+        x: 80
+        y: 280
+      data:
+        title: start_input
+        type: start
+        variables:
+        - label: report_id
+          variable: report_id
+          type: text-input
+          required: false
+        - label: customer_name
+          variable: customer_name
+          type: text-input
+          required: false
+        - label: site_name
+          variable: site_name
+          type: text-input
+          required: false
+        - label: device_type
+          variable: device_type
+          type: text-input
+          required: false
+        - label: device_model
+          variable: device_model
+          type: text-input
+          required: true
+        - label: device_sn
+          variable: device_sn
+          type: text-input
+          required: false
+        - label: fault_time
+          variable: fault_time
+          type: text-input
+          required: true
+        - label: fault_count
+          variable: fault_count
+          type: number
+          required: false
+          default: 1
+        - label: fault_description
+          variable: fault_description
+          type: paragraph
+          required: true
+        - label: fault_cause
+          variable: fault_cause
+          type: paragraph
+          required: false
+        - label: event_record_text
+          variable: event_record_text
+          type: paragraph
+          required: false
+        - label: waveform_analysis_text
+          variable: waveform_analysis_text
+          type: paragraph
+          required: false
+        - label: overall_appearance_text
+          variable: overall_appearance_text
+          type: paragraph
+          required: false
+        - label: upper_board_text
+          variable: upper_board_text
+          type: paragraph
+          required: false
+        - label: lower_board_text
+          variable: lower_board_text
+          type: paragraph
+          required: false
+        - label: power_device_measure_text
+          variable: power_device_measure_text
+          type: paragraph
+          required: false
+        - label: site_research_text
+          variable: site_research_text
+          type: paragraph
+          required: false
+        selected: false
+      positionAbsolute:
+        x: 80
+        y: 280
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 108
+    - id: preprocess_input
+      position:
+        x: 340
+        y: 280
+      data:
+        title: preprocess_input
+        type: code
+        code_language: python3
+        variables:
+        - variable: report_id
+          value_selector:
+          - start_input
+          - report_id
+        - variable: customer_name
+          value_selector:
+          - start_input
+          - customer_name
+        - variable: site_name
+          value_selector:
+          - start_input
+          - site_name
+        - variable: device_type
+          value_selector:
+          - start_input
+          - device_type
+        - variable: device_model
+          value_selector:
+          - start_input
+          - device_model
+        - variable: device_sn
+          value_selector:
+          - start_input
+          - device_sn
+        - variable: fault_time
+          value_selector:
+          - start_input
+          - fault_time
+        - variable: fault_count
+          value_selector:
+          - start_input
+          - fault_count
+        - variable: fault_description
+          value_selector:
+          - start_input
+          - fault_description
+        - variable: fault_cause
+          value_selector:
+          - start_input
+          - fault_cause
+        - variable: event_record_text
+          value_selector:
+          - start_input
+          - event_record_text
+        - variable: waveform_analysis_text
+          value_selector:
+          - start_input
+          - waveform_analysis_text
+        - variable: overall_appearance_text
+          value_selector:
+          - start_input
+          - overall_appearance_text
+        - variable: upper_board_text
+          value_selector:
+          - start_input
+          - upper_board_text
+        - variable: lower_board_text
+          value_selector:
+          - start_input
+          - lower_board_text
+        - variable: power_device_measure_text
+          value_selector:
+          - start_input
+          - power_device_measure_text
+        - variable: site_research_text
+          value_selector:
+          - start_input
+          - site_research_text
+        outputs:
+          report_id:
+            type: string
+          normalized_fault_summary:
+            type: string
+          retrieval_keywords:
+            type: string
+          possible_parts:
+            type: string
+          possible_environment_factors:
+            type: string
+          fact_summary:
+            type: string
+          fallback_notes:
+            type: array[string]
+        code: "import re\nfrom datetime import datetime\n\ndef norm(v, default=\"\
+          无\"):\n    if v is None:\n        return default\n    s = str(v).strip()\n\
+          \    return s if s else default\n\ndef parse_fault_count(v):\n    try:\n\
+          \        n = int(v)\n        return n if n >= 1 else 1\n    except Exception:\n\
+          \        return 1\n\ndef sanitize_text(v):\n    s = norm(v, \"无\")\n   \
+          \ return re.sub(r\"\\s+\", \" \", s)\n\ndef validate_datetime(v):\n    s\
+          \ = norm(v, \"\")\n    if not s:\n        return False\n    try:\n     \
+          \   # 支持 Z 结尾与 ±HH:MM 时区偏移（RFC3339 常用子集）\n        datetime.fromisoformat(s.replace(\"\
+          Z\", \"+00:00\"))\n        return True\n    except Exception:\n        return\
+          \ False\n\ndef main(report_id, customer_name, site_name, device_type, device_model,\
+          \ device_sn, fault_time, fault_count, fault_description, fault_cause, event_record_text,\
+          \ waveform_analysis_text, overall_appearance_text, upper_board_text, lower_board_text,\
+          \ power_device_measure_text, site_research_text):\n    optional_blank_fields\
+          \ = {\"customer_name\", \"site_name\", \"device_type\", \"device_sn\", \"\
+          fault_cause\"}\n    missing = []\n    if not str(device_model).strip():\n\
+          \        missing.append(\"device_model\")\n    if not str(fault_description).strip():\n\
+          \        missing.append(\"fault_description\")\n    if not validate_datetime(fault_time):\n\
+          \        missing.append(\"fault_time\")\n    if missing:\n        raise\
+          \ ValueError(f\"关键字段缺失或格式不合法: {','.join(missing)}\")\n\n    normalized =\
+          \ {\n        \"report_id\": norm(report_id, \"\"),\n        \"customer_name\"\
+          : norm(customer_name, \"\"),\n        \"site_name\": norm(site_name, \"\"\
+          ),\n        \"device_type\": norm(device_type, \"\"),\n        \"device_model\"\
+          : norm(device_model, \"\"),\n        \"device_sn\": norm(device_sn, \"\"\
+          ),\n        \"fault_time\": norm(fault_time, \"\"),\n        \"fault_count\"\
+          : parse_fault_count(fault_count),\n        \"fault_description\": sanitize_text(fault_description),\n\
+          \        \"fault_cause\": sanitize_text(fault_cause),\n        \"event_record_text\"\
+          : sanitize_text(event_record_text),\n        \"waveform_analysis_text\"\
+          : sanitize_text(waveform_analysis_text),\n        \"overall_appearance_text\"\
+          : sanitize_text(overall_appearance_text),\n        \"upper_board_text\"\
+          : sanitize_text(upper_board_text),\n        \"lower_board_text\": sanitize_text(lower_board_text),\n\
+          \        \"power_device_measure_text\": sanitize_text(power_device_measure_text),\n\
+          \        \"site_research_text\": sanitize_text(site_research_text),\n  \
+          \  }\n\n    retrieval_keywords = \" \".join([normalized[\"device_model\"\
+          ], normalized[\"fault_description\"], normalized[\"fault_cause\"]]).strip()\n\
+          \    fact_summary = (\n        f\"客户:{normalized['customer_name']} | 现场:{normalized['site_name']}\
+          \ | \"\n        f\"机型:{normalized['device_model']} | 条码:{normalized['device_sn']}\
+          \ | \"\n        f\"时间:{normalized['fault_time']} | 数量:{normalized['fault_count']}\
+          \ | \"\n        f\"故障:{normalized['fault_description']} | 原因导向:{normalized['fault_cause']}\
+          \ | \"\n        f\"事件记录:{normalized['event_record_text']} | 波形:{normalized['waveform_analysis_text']}\
+          \ | \"\n        f\"整体外观:{normalized['overall_appearance_text']} | 上板:{normalized['upper_board_text']}\
+          \ | \"\n        f\"下板:{normalized['lower_board_text']} | 功率器件:{normalized['power_device_measure_text']}\
+          \ | \"\n        f\"现场调研:{normalized['site_research_text']}\"\n    )\n\n\
+          \    fallback_notes = []\n    for k, v in normalized.items():\n        if\
+          \ k in optional_blank_fields and v == \"\":\n            fallback_notes.append(f\"\
+          {k} 为空\")\n        if k.endswith(\"_text\") and v == \"无\":\n          \
+          \  fallback_notes.append(f\"{k} 缺失，已兜底为'无'\")\n\n    return {\n        \"\
+          report_id\": normalized[\"report_id\"],\n        \"normalized_fault_summary\"\
+          : normalized[\"fault_description\"],\n        \"retrieval_keywords\": retrieval_keywords,\n\
+          \        \"possible_parts\": normalized[\"device_model\"],\n        \"possible_environment_factors\"\
+          : normalized[\"site_name\"],\n        \"fact_summary\": fact_summary,\n\
+          \        \"fallback_notes\": fallback_notes,\n    }\n"
+        selected: false
+      positionAbsolute:
+        x: 340
+        y: 280
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 99
+    - id: retrieve_history_cases
+      position:
+        x: 620
+        y: 170
+      data:
+        title: retrieve_history_cases
+        type: knowledge-retrieval
+        dataset_ids:
+        - '{{#env.history_dataset_id#}}'
+        query_variable_selector:
+        - preprocess_input
+        - retrieval_keywords
+        retrieval_mode: multiple
+        top_k: 5
+        score_threshold_enabled: false
+        selected: false
+      positionAbsolute:
+        x: 620
+        y: 170
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 99
+    - id: retrieve_product_knowledge
+      position:
+        x: 620
+        y: 390
+      data:
+        title: retrieve_product_knowledge
+        type: knowledge-retrieval
+        dataset_ids:
+        - '{{#env.product_dataset_id#}}'
+        query_variable_selector:
+        - preprocess_input
+        - retrieval_keywords
+        retrieval_mode: multiple
+        top_k: 5
+        score_threshold_enabled: false
+        selected: false
+      positionAbsolute:
+        x: 620
+        y: 390
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 99
+    - id: generate_customer_letter_problem_desc
+      position:
+        x: 910
+        y: 120
+      data:
+        title: generate_customer_letter_problem_desc
+        type: llm
+        model:
+          provider: openai
+          name: gpt-4o-mini
+          mode: chat
+          completion_params:
+            temperature: 0.2
+        vision:
+          enabled: false
+        prompt_template:
+        - role: system
+          text: '你是设备故障报告专业撰写人。
 
-      - id: preprocess_input
-        position: { x: 340, y: 280 }
-        data:
-          title: preprocess_input
-          type: code
-          code_language: python3
-          variables:
-            - { variable: report_id, value_selector: [start_input, report_id] }
-            - { variable: customer_name, value_selector: [start_input, customer_name] }
-            - { variable: site_name, value_selector: [start_input, site_name] }
-            - { variable: device_type, value_selector: [start_input, device_type] }
-            - { variable: device_model, value_selector: [start_input, device_model] }
-            - { variable: device_sn, value_selector: [start_input, device_sn] }
-            - { variable: fault_time, value_selector: [start_input, fault_time] }
-            - { variable: fault_count, value_selector: [start_input, fault_count] }
-            - { variable: fault_description, value_selector: [start_input, fault_description] }
-            - { variable: fault_cause, value_selector: [start_input, fault_cause] }
-            - { variable: event_record_text, value_selector: [start_input, event_record_text] }
-            - { variable: waveform_analysis_text, value_selector: [start_input, waveform_analysis_text] }
-            - { variable: overall_appearance_text, value_selector: [start_input, overall_appearance_text] }
-            - { variable: upper_board_text, value_selector: [start_input, upper_board_text] }
-            - { variable: lower_board_text, value_selector: [start_input, lower_board_text] }
-            - { variable: power_device_measure_text, value_selector: [start_input, power_device_measure_text] }
-            - { variable: site_research_text, value_selector: [start_input, site_research_text] }
-          outputs:
-            report_id: { type: string }
-            normalized_fault_summary: { type: string }
-            retrieval_keywords: { type: string }
-            possible_parts: { type: string }
-            possible_environment_factors: { type: string }
-            fact_summary: { type: string }
-            fallback_notes: { type: 'array[string]' }
-          code: |
-            import re
-            from datetime import datetime
+            仅基于输入事实与检索证据生成；不得新增未出现事实。
 
-            def norm(v, default="无"):
-                if v is None:
-                    return default
-                s = str(v).strip()
-                return s if s else default
+            证据不足必须显式写“【证据不足】”。输出必须是合法 JSON。
 
-            def parse_fault_count(v):
-                try:
-                    n = int(v)
-                    return n if n >= 1 else 1
-                except Exception:
-                    return 1
+            若历史案例与产品知识冲突，优先采用产品知识证据，并在措辞中说明“与历史案例存在差异”。
 
-            def sanitize_text(v):
-                s = norm(v, "无")
-                return re.sub(r"\s+", " ", s)
+            '
+        - role: user
+          text: '【用户输入事实】
 
-            def validate_datetime(v):
-                s = norm(v, "")
-                if not s:
-                    return False
-                try:
-                    # 支持 Z 结尾与 ±HH:MM 时区偏移（RFC3339 常用子集）
-                    datetime.fromisoformat(s.replace("Z", "+00:00"))
-                    return True
-                except Exception:
-                    return False
+            {{#preprocess_input.fact_summary#}}
 
-            def main(report_id, customer_name, site_name, device_type, device_model, device_sn, fault_time, fault_count, fault_description, fault_cause, event_record_text, waveform_analysis_text, overall_appearance_text, upper_board_text, lower_board_text, power_device_measure_text, site_research_text):
-                optional_blank_fields = {"customer_name", "site_name", "device_type", "device_sn", "fault_cause"}
-                missing = []
-                if not str(device_model).strip():
-                    missing.append("device_model")
-                if not str(fault_description).strip():
-                    missing.append("fault_description")
-                if not validate_datetime(fault_time):
-                    missing.append("fault_time")
-                if missing:
-                    raise ValueError(f"关键字段缺失或格式不合法: {','.join(missing)}")
+            【历史案例证据】
 
-                normalized = {
-                    "report_id": norm(report_id, ""),
-                    "customer_name": norm(customer_name, ""),
-                    "site_name": norm(site_name, ""),
-                    "device_type": norm(device_type, ""),
-                    "device_model": norm(device_model, ""),
-                    "device_sn": norm(device_sn, ""),
-                    "fault_time": norm(fault_time, ""),
-                    "fault_count": parse_fault_count(fault_count),
-                    "fault_description": sanitize_text(fault_description),
-                    "fault_cause": sanitize_text(fault_cause),
-                    "event_record_text": sanitize_text(event_record_text),
-                    "waveform_analysis_text": sanitize_text(waveform_analysis_text),
-                    "overall_appearance_text": sanitize_text(overall_appearance_text),
-                    "upper_board_text": sanitize_text(upper_board_text),
-                    "lower_board_text": sanitize_text(lower_board_text),
-                    "power_device_measure_text": sanitize_text(power_device_measure_text),
-                    "site_research_text": sanitize_text(site_research_text),
-                }
+            {{#retrieve_history_cases.result#}}
 
-                retrieval_keywords = " ".join([normalized["device_model"], normalized["fault_description"], normalized["fault_cause"]]).strip()
-                fact_summary = (
-                    f"客户:{normalized['customer_name']} | 现场:{normalized['site_name']} | "
-                    f"机型:{normalized['device_model']} | 条码:{normalized['device_sn']} | "
-                    f"时间:{normalized['fault_time']} | 数量:{normalized['fault_count']} | "
-                    f"故障:{normalized['fault_description']} | 原因导向:{normalized['fault_cause']} | "
-                    f"事件记录:{normalized['event_record_text']} | 波形:{normalized['waveform_analysis_text']} | "
-                    f"整体外观:{normalized['overall_appearance_text']} | 上板:{normalized['upper_board_text']} | "
-                    f"下板:{normalized['lower_board_text']} | 功率器件:{normalized['power_device_measure_text']} | "
-                    f"现场调研:{normalized['site_research_text']}"
-                )
+            【产品知识证据】
 
-                fallback_notes = []
-                for k, v in normalized.items():
-                    if k in optional_blank_fields and v == "":
-                        fallback_notes.append(f"{k} 为空")
-                    if k.endswith("_text") and v == "无":
-                        fallback_notes.append(f"{k} 缺失，已兜底为'无'")
+            {{#retrieve_product_knowledge.result#}}
 
-                return {
-                    "report_id": normalized["report_id"],
-                    "normalized_fault_summary": normalized["fault_description"],
-                    "retrieval_keywords": retrieval_keywords,
-                    "possible_parts": normalized["device_model"],
-                    "possible_environment_factors": normalized["site_name"],
-                    "fact_summary": fact_summary,
-                    "fallback_notes": fallback_notes,
-                }
+            输出 JSON:
 
-      - id: retrieve_history_cases
-        position: { x: 620, y: 170 }
-        data:
-          title: retrieve_history_cases
-          type: knowledge-retrieval
-          dataset_ids: ['{{#env.history_dataset_id#}}']
-          query_variable_selector: [preprocess_input, retrieval_keywords]
-          retrieval_mode: multiple
-          top_k: 5
-          score_threshold_enabled: false
+            {"customer_letter":"...","problem_description_refined":"...","evidence_citation":["..."]}
 
-      - id: retrieve_product_knowledge
-        position: { x: 620, y: 390 }
-        data:
-          title: retrieve_product_knowledge
-          type: knowledge-retrieval
-          dataset_ids: ['{{#env.product_dataset_id#}}']
-          query_variable_selector: [preprocess_input, retrieval_keywords]
-          retrieval_mode: multiple
-          top_k: 5
-          score_threshold_enabled: false
+            '
+        selected: false
+      positionAbsolute:
+        x: 910
+        y: 120
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 98
+    - id: generate_five_why
+      position:
+        x: 910
+        y: 300
+      data:
+        title: generate_five_why
+        type: llm
+        model:
+          provider: openai
+          name: gpt-4o-mini
+          mode: chat
+          completion_params:
+            temperature: 0.2
+        vision:
+          enabled: false
+        prompt_template:
+        - role: system
+          text: '你是设备故障分析专家。仅能使用输入事实和证据，缺失信息必须标注“【证据不足】”。
 
-      - id: generate_customer_letter_problem_desc
-        position: { x: 910, y: 120 }
-        data:
-          title: generate_customer_letter_problem_desc
-          type: llm
-          model:
-            provider: openai
-            name: gpt-4o-mini
-            mode: chat
-            completion_params: { temperature: 0.2 }
-          vision: { enabled: false }
-          prompt_template:
-            - role: system
-              text: |
-                你是设备故障报告专业撰写人。
-                仅基于输入事实与检索证据生成；不得新增未出现事实。
-                证据不足必须显式写“【证据不足】”。输出必须是合法 JSON。
-                若历史案例与产品知识冲突，优先采用产品知识证据，并在措辞中说明“与历史案例存在差异”。
-            - role: user
-              text: |
-                【用户输入事实】
-                {{#preprocess_input.fact_summary#}}
-                【历史案例证据】
-                {{#retrieve_history_cases.result#}}
-                【产品知识证据】
-                {{#retrieve_product_knowledge.result#}}
-                输出 JSON:
-                {"customer_letter":"...","problem_description_refined":"...","evidence_citation":["..."]}
+            输出必须是合法 JSON。
 
-      - id: generate_five_why
-        position: { x: 910, y: 300 }
-        data:
-          title: generate_five_why
-          type: llm
-          model:
-            provider: openai
-            name: gpt-4o-mini
-            mode: chat
-            completion_params: { temperature: 0.2 }
-          vision: { enabled: false }
-          prompt_template:
-            - role: system
-              text: |
-                你是设备故障分析专家。仅能使用输入事实和证据，缺失信息必须标注“【证据不足】”。
-                输出必须是合法 JSON。
-            - role: user
-              text: |
-                【输入事实】{{#preprocess_input.fact_summary#}}
-                【历史案例证据】{{#retrieve_history_cases.result#}}
-                输出 JSON:
-                {"five_why_table":[{"question_order":1,"question":"为什么...","analysis":"..."}],"evidence_citation":["..."]}
+            '
+        - role: user
+          text: '【输入事实】{{#preprocess_input.fact_summary#}}
 
-      - id: generate_root_cause_and_responsibility
-        position: { x: 1180, y: 300 }
-        data:
-          title: generate_root_cause_and_responsibility
-          type: llm
-          model:
-            provider: openai
-            name: gpt-4o-mini
-            mode: chat
-            completion_params: { temperature: 0.2 }
-          vision: { enabled: false }
-          prompt_template:
-            - role: system
-              text: |
-                你是质量与故障归因专家。
-                责任归属仅给建议方向，并标注“【待人工审核】”；证据不足必须显式提示。
-                输出必须是合法 JSON。
-                responsibility_confidence 打分规则：
-                - 证据完整性（0~40）
-                - 事实一致性（0~30）
-                - 历史案例匹配度（0~30）
-                三项求和后输出 0~100 整数。
-            - role: user
-              text: |
-                【输入事实】{{#preprocess_input.fact_summary#}}
-                【历史案例证据】{{#retrieve_history_cases.result#}}
-                【产品知识证据】{{#retrieve_product_knowledge.result#}}
-                【5Y 分析】{{#generate_five_why.text#}}
-                输出 JSON:
-                {"root_cause_summary":"...","responsibility_judgement":"...【待人工审核】","evidence_sufficiency":"高/中/低","responsibility_confidence":80,"risk_tips":["..."],"hallucination_check":"无/疑似/确认","evidence_citation":["..."]}
+            【历史案例证据】{{#retrieve_history_cases.result#}}
 
-      - id: generate_solution
-        position: { x: 1450, y: 300 }
-        data:
-          title: generate_solution
-          type: llm
-          model:
-            provider: openai
-            name: gpt-4o-mini
-            mode: chat
-            completion_params: { temperature: 0.2 }
-          vision: { enabled: false }
-          prompt_template:
-            - role: system
-              text: |
-                你是设备故障整改方案专家。方案必须可执行、可验证、可分配责任，不得新增未给出事实。
-                输出必须是合法 JSON。
-            - role: user
-              text: |
-                【输入事实】{{#preprocess_input.fact_summary#}}
-                【根因与责任】{{#generate_root_cause_and_responsibility.text#}}
-                【产品知识证据】{{#retrieve_product_knowledge.result#}}
-                输出 JSON:
-                {"temporary_measures":"...","corrective_actions":"...","preventive_actions":"...","customer_side_actions":"...","internal_quality_actions":"...","site_handling_plan":"...","factory_handling_plan":"...","evidence_citation":["..."]}
+            输出 JSON:
 
-      - id: polish_report_sections
-        position: { x: 1720, y: 300 }
-        data:
-          title: polish_report_sections
-          type: llm
-          model:
-            provider: openai
-            name: gpt-4o-mini
-            mode: chat
-            completion_params: { temperature: 0.1 }
-          vision: { enabled: false }
-          prompt_template:
-            - role: system
-              text: |
-                你是技术报告语言润色专家。只允许润色措辞，不允许新增事实。
-                输出必须是合法 JSON。
-            - role: user
-              text: |
-                【客户说明与问题描述】{{#generate_customer_letter_problem_desc.text#}}
-                【5Y 分析】{{#generate_five_why.text#}}
-                【根因与责任】{{#generate_root_cause_and_responsibility.text#}}
-                【解决方案】{{#generate_solution.text#}}
-                输出 JSON:
-                {"customer_letter":"...","problem_description_refined":"...","five_why_table":[],"root_cause_summary":"...","responsibility_judgement":"...","temporary_measures":"...","corrective_actions":"...","preventive_actions":"...","customer_side_actions":"...","internal_quality_actions":"...","site_handling_plan":"...","factory_handling_plan":"..."}
+            {"five_why_table":[{"question_order":1,"question":"为什么...","analysis":"..."}],"evidence_citation":["..."]}
 
-      - id: assemble_final_json
-        position: { x: 1990, y: 300 }
-        data:
-          title: assemble_final_json
-          type: code
-          code_language: python3
-          variables:
-            - { variable: report_id, value_selector: [preprocess_input, report_id] }
-            - { variable: fact_summary, value_selector: [preprocess_input, fact_summary] }
-            - { variable: fallback_notes, value_selector: [preprocess_input, fallback_notes] }
-            - { variable: history_result, value_selector: [retrieve_history_cases, result] }
-            - { variable: product_result, value_selector: [retrieve_product_knowledge, result] }
-            - { variable: customer_raw, value_selector: [generate_customer_letter_problem_desc, text] }
-            - { variable: five_why_raw, value_selector: [generate_five_why, text] }
-            - { variable: root_raw, value_selector: [generate_root_cause_and_responsibility, text] }
-            - { variable: solution_raw, value_selector: [generate_solution, text] }
-            - { variable: polish_raw, value_selector: [polish_report_sections, text] }
-          outputs:
-            final_json: { type: string }
-          code: |
-            import json
-            CONSERVATIVE_CONFIDENCE_DEFAULT = 30
+            '
+        selected: false
+      positionAbsolute:
+        x: 910
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 98
+    - id: generate_root_cause_and_responsibility
+      position:
+        x: 1180
+        y: 300
+      data:
+        title: generate_root_cause_and_responsibility
+        type: llm
+        model:
+          provider: openai
+          name: gpt-4o-mini
+          mode: chat
+          completion_params:
+            temperature: 0.2
+        vision:
+          enabled: false
+        prompt_template:
+        - role: system
+          text: '你是质量与故障归因专家。
 
-            def parse_obj(s):
-                if not s:
-                    return {}
-                if isinstance(s, dict):
-                    return s
-                try:
-                    return json.loads(s)
-                except Exception:
-                    return {"raw_text": str(s)}
+            责任归属仅给建议方向，并标注“【待人工审核】”；证据不足必须显式提示。
 
-            def ensure_list(v):
-                if isinstance(v, list):
-                    return v
-                if v is None:
-                    return []
-                return [str(v)]
+            输出必须是合法 JSON。
 
-            def safe_int(v, default=CONSERVATIVE_CONFIDENCE_DEFAULT):
-                try:
-                    n = int(v)
-                    return max(0, min(100, n))
-                except (ValueError, TypeError):
-                    return default
+            responsibility_confidence 打分规则：
 
-            def is_retrieval_empty(result):
-                # 同时兼容 Python/JSON 两类空值序列化结果
-                if result is None:
-                    return True
-                if isinstance(result, str):
-                    return result.strip() in ["", "[]", "None", "null"]
-                if isinstance(result, (list, dict, tuple, set)):
-                    return len(result) == 0
-                return False
+            - 证据完整性（0~40）
 
-            def main(report_id, fact_summary, fallback_notes, history_result, product_result, customer_raw, five_why_raw, root_raw, solution_raw, polish_raw):
-                customer = parse_obj(customer_raw)
-                five_why = parse_obj(five_why_raw)
-                root = parse_obj(root_raw)
-                solution = parse_obj(solution_raw)
-                polish = parse_obj(polish_raw)
+            - 事实一致性（0~30）
 
-                history_empty = is_retrieval_empty(history_result)
-                product_empty = is_retrieval_empty(product_result)
-                raw_confidence = root.get("responsibility_confidence", None)
-                confidence = safe_int(raw_confidence, CONSERVATIVE_CONFIDENCE_DEFAULT)
-                risk_tips = ensure_list(root.get("risk_tips", []))
-                if raw_confidence is None:
-                    risk_tips.append(f"【风险提示】responsibility_confidence 缺失，已按保守默认值{CONSERVATIVE_CONFIDENCE_DEFAULT}处理")
+            - 历史案例匹配度（0~30）
 
-                merged = {
-                    "report_id": report_id,
-                    "customer_letter": polish.get("customer_letter") or customer.get("customer_letter") or "【证据不足】",
-                    "problem_description_refined": polish.get("problem_description_refined") or customer.get("problem_description_refined") or "【证据不足】",
-                    "five_why_table": polish.get("five_why_table") or five_why.get("five_why_table") or [],
-                    "root_cause_summary": polish.get("root_cause_summary") or root.get("root_cause_summary") or "【证据不足】",
-                    "responsibility_judgement": polish.get("responsibility_judgement") or root.get("responsibility_judgement") or "【待人工审核】",
-                    "temporary_measures": polish.get("temporary_measures") or solution.get("temporary_measures") or "【证据不足】",
-                    "corrective_actions": polish.get("corrective_actions") or solution.get("corrective_actions") or "【证据不足】",
-                    "preventive_actions": polish.get("preventive_actions") or solution.get("preventive_actions") or "【证据不足】",
-                    "customer_side_actions": polish.get("customer_side_actions") or solution.get("customer_side_actions") or "【证据不足】",
-                    "internal_quality_actions": polish.get("internal_quality_actions") or solution.get("internal_quality_actions") or "【证据不足】",
-                    "site_handling_plan": polish.get("site_handling_plan") or solution.get("site_handling_plan") or "【证据不足】",
-                    "factory_handling_plan": polish.get("factory_handling_plan") or solution.get("factory_handling_plan") or "【证据不足】",
-                    "audit_metrics": {
-                        "evidence_sufficiency": root.get("evidence_sufficiency", "中"),
-                        "responsibility_confidence": confidence,
-                        "risk_tips": risk_tips,
-                        "hallucination_check": root.get("hallucination_check", "未检测")
-                    },
-                    "evidence_citation": {
-                        "customer_letter_problem_desc": ensure_list(customer.get("evidence_citation", [])),
-                        "five_why": ensure_list(five_why.get("evidence_citation", [])),
-                        "root_cause_and_responsibility": ensure_list(root.get("evidence_citation", [])),
-                        "solution": ensure_list(solution.get("evidence_citation", []))
-                    },
-                    "ext_info": {
-                        "fact_summary": fact_summary,
-                        "retrieval_status": {
-                            "history_cases": "failed" if history_empty else "ok",
-                            "product_knowledge": "failed" if product_empty else "ok"
-                        },
-                        "fallback_notes": ensure_list(fallback_notes),
-                        "raw_retrieval": {"history_cases": history_result, "product_knowledge": product_result}
-                    }
-                }
-                return {"final_json": json.dumps(merged, ensure_ascii=False)}
+            三项求和后输出 0~100 整数。
 
-      - id: end_output
-        position: { x: 2250, y: 300 }
-        data:
-          title: end_output
-          type: end
-          outputs:
-            - { variable: final_json, value_selector: [assemble_final_json, final_json] }
+            '
+        - role: user
+          text: '【输入事实】{{#preprocess_input.fact_summary#}}
 
+            【历史案例证据】{{#retrieve_history_cases.result#}}
+
+            【产品知识证据】{{#retrieve_product_knowledge.result#}}
+
+            【5Y 分析】{{#generate_five_why.text#}}
+
+            输出 JSON:
+
+            {"root_cause_summary":"...","responsibility_judgement":"...【待人工审核】","evidence_sufficiency":"高/中/低","responsibility_confidence":80,"risk_tips":["..."],"hallucination_check":"无/疑似/确认","evidence_citation":["..."]}
+
+            '
+        selected: false
+      positionAbsolute:
+        x: 1180
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 98
+    - id: generate_solution
+      position:
+        x: 1450
+        y: 300
+      data:
+        title: generate_solution
+        type: llm
+        model:
+          provider: openai
+          name: gpt-4o-mini
+          mode: chat
+          completion_params:
+            temperature: 0.2
+        vision:
+          enabled: false
+        prompt_template:
+        - role: system
+          text: '你是设备故障整改方案专家。方案必须可执行、可验证、可分配责任，不得新增未给出事实。
+
+            输出必须是合法 JSON。
+
+            '
+        - role: user
+          text: '【输入事实】{{#preprocess_input.fact_summary#}}
+
+            【根因与责任】{{#generate_root_cause_and_responsibility.text#}}
+
+            【产品知识证据】{{#retrieve_product_knowledge.result#}}
+
+            输出 JSON:
+
+            {"temporary_measures":"...","corrective_actions":"...","preventive_actions":"...","customer_side_actions":"...","internal_quality_actions":"...","site_handling_plan":"...","factory_handling_plan":"...","evidence_citation":["..."]}
+
+            '
+        selected: false
+      positionAbsolute:
+        x: 1450
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 98
+    - id: polish_report_sections
+      position:
+        x: 1720
+        y: 300
+      data:
+        title: polish_report_sections
+        type: llm
+        model:
+          provider: openai
+          name: gpt-4o-mini
+          mode: chat
+          completion_params:
+            temperature: 0.1
+        vision:
+          enabled: false
+        prompt_template:
+        - role: system
+          text: '你是技术报告语言润色专家。只允许润色措辞，不允许新增事实。
+
+            输出必须是合法 JSON。
+
+            '
+        - role: user
+          text: '【客户说明与问题描述】{{#generate_customer_letter_problem_desc.text#}}
+
+            【5Y 分析】{{#generate_five_why.text#}}
+
+            【根因与责任】{{#generate_root_cause_and_responsibility.text#}}
+
+            【解决方案】{{#generate_solution.text#}}
+
+            输出 JSON:
+
+            {"customer_letter":"...","problem_description_refined":"...","five_why_table":[],"root_cause_summary":"...","responsibility_judgement":"...","temporary_measures":"...","corrective_actions":"...","preventive_actions":"...","customer_side_actions":"...","internal_quality_actions":"...","site_handling_plan":"...","factory_handling_plan":"..."}
+
+            '
+        selected: false
+      positionAbsolute:
+        x: 1720
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 98
+    - id: assemble_final_json
+      position:
+        x: 1990
+        y: 300
+      data:
+        title: assemble_final_json
+        type: code
+        code_language: python3
+        variables:
+        - variable: report_id
+          value_selector:
+          - preprocess_input
+          - report_id
+        - variable: fact_summary
+          value_selector:
+          - preprocess_input
+          - fact_summary
+        - variable: fallback_notes
+          value_selector:
+          - preprocess_input
+          - fallback_notes
+        - variable: history_result
+          value_selector:
+          - retrieve_history_cases
+          - result
+        - variable: product_result
+          value_selector:
+          - retrieve_product_knowledge
+          - result
+        - variable: customer_raw
+          value_selector:
+          - generate_customer_letter_problem_desc
+          - text
+        - variable: five_why_raw
+          value_selector:
+          - generate_five_why
+          - text
+        - variable: root_raw
+          value_selector:
+          - generate_root_cause_and_responsibility
+          - text
+        - variable: solution_raw
+          value_selector:
+          - generate_solution
+          - text
+        - variable: polish_raw
+          value_selector:
+          - polish_report_sections
+          - text
+        outputs:
+          final_json:
+            type: string
+        code: "import json\nCONSERVATIVE_CONFIDENCE_DEFAULT = 30\n\ndef parse_obj(s):\n\
+          \    if not s:\n        return {}\n    if isinstance(s, dict):\n       \
+          \ return s\n    try:\n        return json.loads(s)\n    except Exception:\n\
+          \        return {\"raw_text\": str(s)}\n\ndef ensure_list(v):\n    if isinstance(v,\
+          \ list):\n        return v\n    if v is None:\n        return []\n    return\
+          \ [str(v)]\n\ndef safe_int(v, default=CONSERVATIVE_CONFIDENCE_DEFAULT):\n\
+          \    try:\n        n = int(v)\n        return max(0, min(100, n))\n    except\
+          \ (ValueError, TypeError):\n        return default\n\ndef is_retrieval_empty(result):\n\
+          \    # 同时兼容 Python/JSON 两类空值序列化结果\n    if result is None:\n        return\
+          \ True\n    if isinstance(result, str):\n        return result.strip() in\
+          \ [\"\", \"[]\", \"None\", \"null\"]\n    if isinstance(result, (list, dict,\
+          \ tuple, set)):\n        return len(result) == 0\n    return False\n\ndef\
+          \ main(report_id, fact_summary, fallback_notes, history_result, product_result,\
+          \ customer_raw, five_why_raw, root_raw, solution_raw, polish_raw):\n   \
+          \ customer = parse_obj(customer_raw)\n    five_why = parse_obj(five_why_raw)\n\
+          \    root = parse_obj(root_raw)\n    solution = parse_obj(solution_raw)\n\
+          \    polish = parse_obj(polish_raw)\n\n    history_empty = is_retrieval_empty(history_result)\n\
+          \    product_empty = is_retrieval_empty(product_result)\n    raw_confidence\
+          \ = root.get(\"responsibility_confidence\", None)\n    confidence = safe_int(raw_confidence,\
+          \ CONSERVATIVE_CONFIDENCE_DEFAULT)\n    risk_tips = ensure_list(root.get(\"\
+          risk_tips\", []))\n    if raw_confidence is None:\n        risk_tips.append(f\"\
+          【风险提示】responsibility_confidence 缺失，已按保守默认值{CONSERVATIVE_CONFIDENCE_DEFAULT}处理\"\
+          )\n\n    merged = {\n        \"report_id\": report_id,\n        \"customer_letter\"\
+          : polish.get(\"customer_letter\") or customer.get(\"customer_letter\") or\
+          \ \"【证据不足】\",\n        \"problem_description_refined\": polish.get(\"problem_description_refined\"\
+          ) or customer.get(\"problem_description_refined\") or \"【证据不足】\",\n    \
+          \    \"five_why_table\": polish.get(\"five_why_table\") or five_why.get(\"\
+          five_why_table\") or [],\n        \"root_cause_summary\": polish.get(\"\
+          root_cause_summary\") or root.get(\"root_cause_summary\") or \"【证据不足】\"\
+          ,\n        \"responsibility_judgement\": polish.get(\"responsibility_judgement\"\
+          ) or root.get(\"responsibility_judgement\") or \"【待人工审核】\",\n        \"\
+          temporary_measures\": polish.get(\"temporary_measures\") or solution.get(\"\
+          temporary_measures\") or \"【证据不足】\",\n        \"corrective_actions\": polish.get(\"\
+          corrective_actions\") or solution.get(\"corrective_actions\") or \"【证据不足】\"\
+          ,\n        \"preventive_actions\": polish.get(\"preventive_actions\") or\
+          \ solution.get(\"preventive_actions\") or \"【证据不足】\",\n        \"customer_side_actions\"\
+          : polish.get(\"customer_side_actions\") or solution.get(\"customer_side_actions\"\
+          ) or \"【证据不足】\",\n        \"internal_quality_actions\": polish.get(\"internal_quality_actions\"\
+          ) or solution.get(\"internal_quality_actions\") or \"【证据不足】\",\n       \
+          \ \"site_handling_plan\": polish.get(\"site_handling_plan\") or solution.get(\"\
+          site_handling_plan\") or \"【证据不足】\",\n        \"factory_handling_plan\"\
+          : polish.get(\"factory_handling_plan\") or solution.get(\"factory_handling_plan\"\
+          ) or \"【证据不足】\",\n        \"audit_metrics\": {\n            \"evidence_sufficiency\"\
+          : root.get(\"evidence_sufficiency\", \"中\"),\n            \"responsibility_confidence\"\
+          : confidence,\n            \"risk_tips\": risk_tips,\n            \"hallucination_check\"\
+          : root.get(\"hallucination_check\", \"未检测\")\n        },\n        \"evidence_citation\"\
+          : {\n            \"customer_letter_problem_desc\": ensure_list(customer.get(\"\
+          evidence_citation\", [])),\n            \"five_why\": ensure_list(five_why.get(\"\
+          evidence_citation\", [])),\n            \"root_cause_and_responsibility\"\
+          : ensure_list(root.get(\"evidence_citation\", [])),\n            \"solution\"\
+          : ensure_list(solution.get(\"evidence_citation\", []))\n        },\n   \
+          \     \"ext_info\": {\n            \"fact_summary\": fact_summary,\n   \
+          \         \"retrieval_status\": {\n                \"history_cases\": \"\
+          failed\" if history_empty else \"ok\",\n                \"product_knowledge\"\
+          : \"failed\" if product_empty else \"ok\"\n            },\n            \"\
+          fallback_notes\": ensure_list(fallback_notes),\n            \"raw_retrieval\"\
+          : {\"history_cases\": history_result, \"product_knowledge\": product_result}\n\
+          \        }\n    }\n    return {\"final_json\": json.dumps(merged, ensure_ascii=False)}\n"
+        selected: false
+      positionAbsolute:
+        x: 1990
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 99
+    - id: end_output
+      position:
+        x: 2250
+        y: 300
+      data:
+        title: end_output
+        type: end
+        outputs:
+        - variable: final_json
+          value_selector:
+          - assemble_final_json
+          - final_json
+        selected: false
+      positionAbsolute:
+        x: 2250
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      height: 102
     edges:
-      - { id: e1, source: start_input, target: preprocess_input, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e2, source: preprocess_input, target: retrieve_history_cases, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e3, source: preprocess_input, target: retrieve_product_knowledge, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e4, source: retrieve_history_cases, target: generate_customer_letter_problem_desc, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e5, source: retrieve_product_knowledge, target: generate_customer_letter_problem_desc, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e6, source: generate_customer_letter_problem_desc, target: generate_five_why, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e7, source: retrieve_history_cases, target: generate_five_why, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e8, source: generate_five_why, target: generate_root_cause_and_responsibility, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e9, source: retrieve_history_cases, target: generate_root_cause_and_responsibility, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e10, source: retrieve_product_knowledge, target: generate_root_cause_and_responsibility, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e11, source: generate_root_cause_and_responsibility, target: generate_solution, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e12, source: retrieve_product_knowledge, target: generate_solution, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e13, source: generate_customer_letter_problem_desc, target: polish_report_sections, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e14, source: generate_five_why, target: polish_report_sections, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e15, source: generate_root_cause_and_responsibility, target: polish_report_sections, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e16, source: generate_solution, target: polish_report_sections, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e17, source: preprocess_input, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e18, source: retrieve_history_cases, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e19, source: retrieve_product_knowledge, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e20, source: generate_customer_letter_problem_desc, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e21, source: generate_five_why, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e22, source: generate_root_cause_and_responsibility, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e23, source: generate_solution, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e24, source: polish_report_sections, target: assemble_final_json, sourceHandle: source, targetHandle: target, type: custom }
-      - { id: e25, source: assemble_final_json, target: end_output, sourceHandle: source, targetHandle: target, type: custom }
+    - id: e1
+      source: start_input
+      target: preprocess_input
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: start
+        targetType: code
+      zIndex: 0
+    - id: e2
+      source: preprocess_input
+      target: retrieve_history_cases
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: code
+        targetType: knowledge-retrieval
+      zIndex: 0
+    - id: e3
+      source: preprocess_input
+      target: retrieve_product_knowledge
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: code
+        targetType: knowledge-retrieval
+      zIndex: 0
+    - id: e4
+      source: retrieve_history_cases
+      target: generate_customer_letter_problem_desc
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      zIndex: 0
+    - id: e5
+      source: retrieve_product_knowledge
+      target: generate_customer_letter_problem_desc
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      zIndex: 0
+    - id: e6
+      source: generate_customer_letter_problem_desc
+      target: generate_five_why
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      zIndex: 0
+    - id: e7
+      source: retrieve_history_cases
+      target: generate_five_why
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      zIndex: 0
+    - id: e8
+      source: generate_five_why
+      target: generate_root_cause_and_responsibility
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      zIndex: 0
+    - id: e9
+      source: retrieve_history_cases
+      target: generate_root_cause_and_responsibility
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      zIndex: 0
+    - id: e10
+      source: retrieve_product_knowledge
+      target: generate_root_cause_and_responsibility
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      zIndex: 0
+    - id: e11
+      source: generate_root_cause_and_responsibility
+      target: generate_solution
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      zIndex: 0
+    - id: e12
+      source: retrieve_product_knowledge
+      target: generate_solution
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      zIndex: 0
+    - id: e13
+      source: generate_customer_letter_problem_desc
+      target: polish_report_sections
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      zIndex: 0
+    - id: e14
+      source: generate_five_why
+      target: polish_report_sections
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      zIndex: 0
+    - id: e15
+      source: generate_root_cause_and_responsibility
+      target: polish_report_sections
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      zIndex: 0
+    - id: e16
+      source: generate_solution
+      target: polish_report_sections
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      zIndex: 0
+    - id: e17
+      source: preprocess_input
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      zIndex: 0
+    - id: e18
+      source: retrieve_history_cases
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      zIndex: 0
+    - id: e19
+      source: retrieve_product_knowledge
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      zIndex: 0
+    - id: e20
+      source: generate_customer_letter_problem_desc
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      zIndex: 0
+    - id: e21
+      source: generate_five_why
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      zIndex: 0
+    - id: e22
+      source: generate_root_cause_and_responsibility
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      zIndex: 0
+    - id: e23
+      source: generate_solution
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      zIndex: 0
+    - id: e24
+      source: polish_report_sections
+      target: assemble_final_json
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      zIndex: 0
+    - id: e25
+      source: assemble_final_json
+      target: end_output
+      sourceHandle: source
+      targetHandle: target
+      type: custom
+      data:
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      zIndex: 0
+    viewport:
+      x: 0
+      y: 0
+      zoom: 1
+  rag_pipeline_variables: []
+dependencies: []
