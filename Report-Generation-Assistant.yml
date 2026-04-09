@@ -234,7 +234,7 @@ workflow:
         code: "import re\nfrom datetime import datetime\n\ndef norm(v, default=\"\
           无\"):\n    if v is None:\n        return default\n    s = str(v).strip()\n\
           \    return s if s else default\n\ndef parse_fault_count(v):\n    try:\n\
-          \        # Dify start 节点数值控件使用 number，业务侧按整数语义处理\n        f = float(v)\n\
+          \        # Dify start 节点数值控件使用 number，预处理会校验并收敛为 >=1 的整数\n        f = float(v)\n\
           \        if not f.is_integer():\n            return 1\n        n = int(f)\n\
           \        return n if n >= 1 else 1\n    except Exception:\n        return\
           \ 1\n\ndef sanitize_text(v):\n    s = norm(v, \"无\")\n    return re.sub(r\"\

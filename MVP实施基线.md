@@ -24,7 +24,6 @@
     "device_sn": {"type": "string", "default": ""},
     "fault_time": {"type": "string", "format": "date-time"},
     "fault_count": {"type": "integer", "minimum": 1, "default": 1},
-    "fault_count_note": "Dify Start 节点变量类型使用 number，但预处理按整数语义校验并兜底为 >=1 的整数",
     "fault_description": {"type": "string", "minLength": 1},
     "fault_cause": {"type": "string", "default": ""},
     "event_record_text": {"type": "string", "default": "无"},
@@ -40,6 +39,7 @@
 ```
 
 说明：`fault_time` 的 `format: date-time` 按 ISO 8601/RFC3339 时间戳校验。
+- Dify Start 节点的表单类型通常使用 `number` 表示数值输入，`fault_count` 在预处理节点中会校验并收敛为 `>=1` 的整数。
 - 当前 DSL 预处理节点按常用子集校验（`YYYY-MM-DDTHH:mm:ssZ`、`YYYY-MM-DDTHH:mm:ss+08:00`、`YYYY-MM-DDTHH:mm:ss-05:00`）。联调时应保证后端按该格式传入。
 
 ### 2.2 assemble_final_json 校验规则
