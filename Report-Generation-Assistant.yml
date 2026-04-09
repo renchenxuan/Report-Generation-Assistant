@@ -47,7 +47,7 @@ workflow:
           title: start_input
           type: start
           variables:
-            - { label: report_id, variable: report_id, type: text-input, required: true }
+            - { label: report_id, variable: report_id, type: text-input, required: false }
             - { label: customer_name, variable: customer_name, type: text-input, required: false }
             - { label: site_name, variable: site_name, type: text-input, required: false }
             - { label: device_type, variable: device_type, type: text-input, required: false }
@@ -129,6 +129,7 @@ workflow:
                     return False
 
             def main(report_id, customer_name, site_name, device_type, device_model, device_sn, fault_time, fault_count, fault_description, fault_cause, event_record_text, waveform_analysis_text, overall_appearance_text, upper_board_text, lower_board_text, power_device_measure_text, site_research_text):
+                optional_blank_fields = {"customer_name", "site_name", "device_type", "device_sn", "fault_cause"}
                 missing = []
                 if not str(device_model).strip():
                     missing.append("device_model")
@@ -173,7 +174,7 @@ workflow:
 
                 fallback_notes = []
                 for k, v in normalized.items():
-                    if k in ["customer_name", "site_name", "device_type", "device_sn", "fault_cause"] and v == "":
+                    if k in optional_blank_fields and v == "":
                         fallback_notes.append(f"{k} 为空")
                     if k.endswith("_text") and v == "无":
                         fallback_notes.append(f"{k} 缺失，已兜底为'无'")
@@ -227,6 +228,7 @@ workflow:
                 你是设备故障报告专业撰写人。
                 仅基于输入事实与检索证据生成；不得新增未出现事实。
                 证据不足必须显式写“【证据不足】”。输出必须是合法 JSON。
+                若历史案例与产品知识冲突，优先采用产品知识证据，并在措辞中说明“与历史案例存在差异”。
             - role: user
               text: |
                 【用户输入事实】
@@ -278,6 +280,11 @@ workflow:
                 你是质量与故障归因专家。
                 责任归属仅给建议方向，并标注“【待人工审核】”；证据不足必须显式提示。
                 输出必须是合法 JSON。
+                responsibility_confidence 打分规则：
+                - 证据完整性（0~40）
+                - 事实一致性（0~30）
+                - 历史案例匹配度（0~30）
+                三项求和后输出 0~100 整数。
             - role: user
               text: |
                 【输入事实】{{#preprocess_input.fact_summary#}}
@@ -375,12 +382,15 @@ workflow:
                     return []
                 return [str(v)]
 
-            def safe_int(v, default=60):
+            def safe_int(v, default=50):
                 try:
                     n = int(v)
                     return max(0, min(100, n))
-                except Exception:
+                except (ValueError, TypeError):
                     return default
+
+            def is_retrieval_empty(result):
+                return (not result) or str(result).strip() in ["", "[]", "None", "null"]
 
             def main(report_id, fact_summary, fallback_notes, history_result, product_result, customer_raw, five_why_raw, root_raw, solution_raw, polish_raw):
                 customer = parse_obj(customer_raw)
@@ -389,8 +399,8 @@ workflow:
                 solution = parse_obj(solution_raw)
                 polish = parse_obj(polish_raw)
 
-                history_empty = not history_result or str(history_result).strip() in ["", "[]", "None", "null"]
-                product_empty = not product_result or str(product_result).strip() in ["", "[]", "None", "null"]
+                history_empty = is_retrieval_empty(history_result)
+                product_empty = is_retrieval_empty(product_result)
 
                 merged = {
                     "report_id": report_id,
@@ -410,7 +420,7 @@ workflow:
                         "evidence_sufficiency": root.get("evidence_sufficiency", "中"),
                         "responsibility_confidence": safe_int(root.get("responsibility_confidence", 60)),
                         "risk_tips": ensure_list(root.get("risk_tips", [])),
-                        "hallucination_check": root.get("hallucination_check", "疑似")
+                        "hallucination_check": root.get("hallucination_check", "未检测")
                     },
                     "evidence_citation": {
                         "customer_letter_problem_desc": ensure_list(customer.get("evidence_citation", [])),
