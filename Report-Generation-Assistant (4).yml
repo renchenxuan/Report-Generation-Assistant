@@ -1002,7 +1002,7 @@ workflow:
               score = DEFAULT_CONFIDENCE
               try:
                   if isinstance(v, str):
-                      score = int(float(v.strip()))
+                      score = int(round(float(v.strip())))
                   else:
                       score = int(v)
               except (ValueError, TypeError):
