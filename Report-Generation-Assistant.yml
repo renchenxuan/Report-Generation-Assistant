@@ -390,6 +390,7 @@ workflow:
                     return default
 
             def is_retrieval_empty(result):
+                # 同时兼容 Python/JSON 两类空值序列化结果
                 return (not result) or str(result).strip() in ["", "[]", "None", "null"]
 
             def main(report_id, fact_summary, fallback_notes, history_result, product_result, customer_raw, five_why_raw, root_raw, solution_raw, polish_raw):

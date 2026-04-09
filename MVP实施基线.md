@@ -39,6 +39,7 @@
 ```
 
 说明：`fault_time` 的 `format: date-time` 按 ISO 8601/RFC3339 时间戳校验。
+- 当前 DSL 预处理节点按常用子集校验（`YYYY-MM-DDTHH:MM:SSZ` 或带时区偏移格式），联调时应保证后端按该格式传入。
 
 ### 2.2 assemble_final_json 校验规则
 - 严格按 Schema 校验。
@@ -49,6 +50,7 @@
 - 非核心字段缺失：
   - 自动填默认值（如“无”）
   - 在 `ext_info.fallback_notes` 标注“字段为空，已兜底”
+- `fault_count` 空值或非法值按 1 兜底（最小值 1）。
 
 ### 2.3 输出契约原则
 - 最终输出必须为结构化 JSON。
@@ -156,6 +158,10 @@
 ### 7.2 后端对接前置
 - 生成 Dify 工作流 API Key，并限制后端服务 IP 调用。
 - 安全加固建议（MVP 可先纳入规范）：API Key 定期轮换、最小权限、服务端安全存储，必要时叠加应用层鉴权（如 JWT/签名）。
+- 部署前需配置 DSL 环境变量：
+  - `history_dataset_id`：历史案例知识库 Dataset ID
+  - `product_dataset_id`：产品知识库 Dataset ID
+  - 获取方式：在 Dify 知识库中创建/选定数据集后复制对应 ID，写入工作流环境变量。
 - 约定异常码：
   - 400：入参不合法
   - 500：工作流节点执行失败
