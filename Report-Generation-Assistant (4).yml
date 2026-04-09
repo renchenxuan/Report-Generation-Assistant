@@ -491,6 +491,7 @@ workflow:
     - data:
         code: |
           import json
+          # 审核分值默认值；后续会强制归一化到 0~100 的整数范围。
           DEFAULT_CONFIDENCE = 60
 
           def main(
@@ -537,7 +538,7 @@ workflow:
               generated['audit_metrics'].setdefault('risk_tips', [])
               generated['audit_metrics'].setdefault('hallucination_check', '无')
 
-              raw_confidence = generated['audit_metrics'].get('responsibility_confidence', DEFAULT_CONFIDENCE)
+              raw_confidence = generated['audit_metrics']['responsibility_confidence']
               confidence = DEFAULT_CONFIDENCE
               corrected_confidence = False
               try:
@@ -567,9 +568,9 @@ workflow:
                       '核心字段缺失：' + ', '.join(missing_required_fields)
                   )
 
-              audit_metrics = generated.get('audit_metrics', {})
               section_payload = dict(generated)
               section_payload.pop('audit_metrics', None)
+              audit_metrics = generated.get('audit_metrics', {})
 
               final_json = {
                   'report_id': report_id,
