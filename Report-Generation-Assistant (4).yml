@@ -1,5 +1,5 @@
 app:
-  description: 设备故障报告生成工作流（MVP，当前未接入知识库）
+  description: 设备故障报告生成工作流（MVP基础链路，无知识库）
   icon: 🤖
   icon_background: '#E4FBCC'
   mode: workflow
@@ -44,7 +44,7 @@ workflow:
       number_limits: 3
     opening_statement: ''
     retriever_resource:
-      enabled: true
+      enabled: false
     sensitive_word_avoidance:
       enabled: false
     speech_to_text:
@@ -57,26 +57,617 @@ workflow:
       language: ''
       voice: ''
   graph:
-    edges: []
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: code
+      id: 1000000000001-source-1000000000002-target
+      source: '1000000000001'
+      sourceHandle: source
+      target: '1000000000002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: llm
+      id: 1000000000002-source-1000000000003-target
+      source: '1000000000002'
+      sourceHandle: source
+      target: '1000000000003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: code
+      id: 1000000000003-source-1000000000004-target
+      source: '1000000000003'
+      sourceHandle: source
+      target: '1000000000004'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: end
+      id: 1000000000004-source-1000000000005-target
+      source: '1000000000004'
+      sourceHandle: source
+      target: '1000000000005'
+      targetHandle: target
+      type: custom
+      zIndex: 0
     nodes:
     - data:
         title: 用户输入
         type: start
-        variables: []
-      height: 72
-      id: '1775724640382'
+        variables:
+        - label: report_id
+          max_length: 64
+          options: []
+          required: false
+          type: text-input
+          variable: report_id
+        - label: customer_name
+          max_length: 128
+          options: []
+          required: false
+          type: text-input
+          variable: customer_name
+        - label: site_name
+          max_length: 128
+          options: []
+          required: false
+          type: text-input
+          variable: site_name
+        - label: device_model
+          max_length: 128
+          options: []
+          required: true
+          type: text-input
+          variable: device_model
+        - label: device_sn
+          max_length: 128
+          options: []
+          required: false
+          type: text-input
+          variable: device_sn
+        - label: fault_time
+          max_length: 64
+          options: []
+          required: true
+          type: text-input
+          variable: fault_time
+        - label: fault_count
+          max_length: 8
+          options: []
+          required: false
+          type: text-input
+          variable: fault_count
+        - label: fault_description
+          max_length: 4096
+          options: []
+          required: true
+          type: paragraph
+          variable: fault_description
+        - label: fault_cause
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: fault_cause
+        - label: event_record_text
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: event_record_text
+        - label: waveform_analysis_text
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: waveform_analysis_text
+        - label: overall_appearance_text
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: overall_appearance_text
+        - label: upper_board_text
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: upper_board_text
+        - label: lower_board_text
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: lower_board_text
+        - label: power_device_measure_text
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: power_device_measure_text
+        - label: site_research_text
+          max_length: 4096
+          options: []
+          required: false
+          type: paragraph
+          variable: site_research_text
+      height: 640
+      id: '1000000000001'
       position:
         x: 80
-        y: 282
+        y: 180
       positionAbsolute:
         x: 80
-        y: 282
+        y: 180
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 320
+    - data:
+        code: |
+          def _norm(v, default='无'):
+              if v is None:
+                  return default
+              s = str(v).strip()
+              return s if s else default
+
+          def _to_int(v, default=1):
+              try:
+                  n = int(str(v).strip())
+                  return n if n > 0 else default
+              except Exception:
+                  return default
+
+          def main(
+              report_id: str = '',
+              customer_name: str = '',
+              site_name: str = '',
+              device_model: str = '',
+              device_sn: str = '',
+              fault_time: str = '',
+              fault_count: str = '1',
+              fault_description: str = '',
+              fault_cause: str = '',
+              event_record_text: str = '',
+              waveform_analysis_text: str = '',
+              overall_appearance_text: str = '',
+              upper_board_text: str = '',
+              lower_board_text: str = '',
+              power_device_measure_text: str = '',
+              site_research_text: str = ''
+          ) -> dict:
+              missing = []
+              if not str(device_model).strip():
+                  missing.append('device_model')
+              if not str(fault_time).strip():
+                  missing.append('fault_time')
+              if not str(fault_description).strip():
+                  missing.append('fault_description')
+
+              retrieval_status = 'failed'
+              fallback_notes = ['MVP基础链路未接入知识库，按输入事实生成。']
+
+              normalized_fault_summary = '；'.join([
+                  f"机型：{_norm(device_model, '')}",
+                  f"时间：{_norm(fault_time, '')}",
+                  f"问题：{_norm(fault_description, '')}",
+                  f"导向：{_norm(fault_cause)}"
+              ])
+
+              fact_summary = '\n'.join([
+                  f"客户名称：{_norm(customer_name)}",
+                  f"现场名称：{_norm(site_name)}",
+                  f"设备型号：{_norm(device_model, '')}",
+                  f"设备条码：{_norm(device_sn)}",
+                  f"故障时间：{_norm(fault_time, '')}",
+                  f"故障数量：{_to_int(fault_count)}",
+                  f"故障描述：{_norm(fault_description, '')}",
+                  f"故障原因导向：{_norm(fault_cause)}",
+                  f"事件记录分析：{_norm(event_record_text)}",
+                  f"波形分析：{_norm(waveform_analysis_text)}",
+                  f"整体外观分析：{_norm(overall_appearance_text)}",
+                  f"开盖上层板分析：{_norm(upper_board_text)}",
+                  f"开盖下层板分析：{_norm(lower_board_text)}",
+                  f"功率器件测量分析：{_norm(power_device_measure_text)}",
+                  f"现场调研分析：{_norm(site_research_text)}"
+              ])
+
+              return {
+                  'report_id': _norm(report_id, ''),
+                  'customer_name': _norm(customer_name),
+                  'site_name': _norm(site_name),
+                  'device_model': _norm(device_model, ''),
+                  'device_sn': _norm(device_sn),
+                  'fault_time': _norm(fault_time, ''),
+                  'fault_count': _to_int(fault_count),
+                  'fault_description': _norm(fault_description, ''),
+                  'normalized_fault_summary': normalized_fault_summary,
+                  'fact_summary': fact_summary,
+                  'retrieval_status': retrieval_status,
+                  'fallback_notes': fallback_notes,
+                  'missing_required_fields': missing
+              }
+        code_language: python3
+        desc: 清洗输入并输出MVP兜底字段
+        outputs:
+          customer_name:
+            children: null
+            type: string
+          device_model:
+            children: null
+            type: string
+          device_sn:
+            children: null
+            type: string
+          fact_summary:
+            children: null
+            type: string
+          fallback_notes:
+            children: null
+            type: array[string]
+          fault_count:
+            children: null
+            type: number
+          fault_description:
+            children: null
+            type: string
+          fault_time:
+            children: null
+            type: string
+          missing_required_fields:
+            children: null
+            type: array[string]
+          normalized_fault_summary:
+            children: null
+            type: string
+          report_id:
+            children: null
+            type: string
+          retrieval_status:
+            children: null
+            type: string
+          site_name:
+            children: null
+            type: string
+        selected: false
+        title: preprocess_input
+        type: code
+        variables:
+        - value_selector:
+          - '1000000000001'
+          - report_id
+          variable: report_id
+        - value_selector:
+          - '1000000000001'
+          - customer_name
+          variable: customer_name
+        - value_selector:
+          - '1000000000001'
+          - site_name
+          variable: site_name
+        - value_selector:
+          - '1000000000001'
+          - device_model
+          variable: device_model
+        - value_selector:
+          - '1000000000001'
+          - device_sn
+          variable: device_sn
+        - value_selector:
+          - '1000000000001'
+          - fault_time
+          variable: fault_time
+        - value_selector:
+          - '1000000000001'
+          - fault_count
+          variable: fault_count
+        - value_selector:
+          - '1000000000001'
+          - fault_description
+          variable: fault_description
+        - value_selector:
+          - '1000000000001'
+          - fault_cause
+          variable: fault_cause
+        - value_selector:
+          - '1000000000001'
+          - event_record_text
+          variable: event_record_text
+        - value_selector:
+          - '1000000000001'
+          - waveform_analysis_text
+          variable: waveform_analysis_text
+        - value_selector:
+          - '1000000000001'
+          - overall_appearance_text
+          variable: overall_appearance_text
+        - value_selector:
+          - '1000000000001'
+          - upper_board_text
+          variable: upper_board_text
+        - value_selector:
+          - '1000000000001'
+          - lower_board_text
+          variable: lower_board_text
+        - value_selector:
+          - '1000000000001'
+          - power_device_measure_text
+          variable: power_device_measure_text
+        - value_selector:
+          - '1000000000001'
+          - site_research_text
+          variable: site_research_text
+      height: 320
+      id: '1000000000002'
+      position:
+        x: 460
+        y: 180
+      positionAbsolute:
+        x: 460
+        y: 180
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 320
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 基于事实生成报告核心章节（无知识库）
+        memory:
+          query_prompt_template: ''
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.2
+          mode: chat
+          name: gpt-4o-mini
+          provider: openai
+        prompt_template:
+        - id: system-prompt
+          role: system
+          text: |
+            你是设备故障报告专业撰写人。仅基于给定事实生成，不得新增未提供事实。
+            若证据不足，需在对应字段标注“【证据不足】”。
+            输出必须是合法 JSON，且仅包含以下键：
+            customer_letter, problem_description_refined, temporary_measures, five_why_table, root_cause_summary,
+            responsibility_judgement, corrective_actions, preventive_actions, customer_side_actions,
+            internal_quality_actions, evidence_citation, audit_metrics。
+            其中 audit_metrics 必含键：evidence_sufficiency, responsibility_confidence, risk_tips, hallucination_check。
+            responsibility_confidence 必须是 0-100 的整数。
+        - id: user-prompt
+          role: user
+          text: |
+            【基础事实】
+            {{#1000000000002.fact_summary#}}
+
+            【故障摘要】
+            {{#1000000000002.normalized_fault_summary#}}
+
+            【检索状态】
+            {{#1000000000002.retrieval_status#}}
+
+            【兜底说明】
+            {{#1000000000002.fallback_notes#}}
+
+            请按上述要求输出 JSON。
+        selected: false
+        structured_output_enabled: false
+        title: generate_report_sections
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 220
+      id: '1000000000003'
+      position:
+        x: 860
+        y: 180
+      positionAbsolute:
+        x: 860
+        y: 180
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 320
+    - data:
+        code: |
+          import json
+
+          def main(
+              llm_text: str,
+              report_id: str,
+              customer_name: str,
+              site_name: str,
+              device_model: str,
+              device_sn: str,
+              fault_time: str,
+              fault_count: int,
+              fault_description: str,
+              retrieval_status: str,
+              fallback_notes: list,
+              missing_required_fields: list
+          ) -> dict:
+              try:
+                  generated = json.loads(llm_text)
+              except Exception:
+                  generated = {
+                      'customer_letter': '【证据不足】模型输出非JSON，需人工补充。',
+                      'problem_description_refined': fault_description,
+                      'temporary_measures': '【证据不足】需人工补充。',
+                      'five_why_table': [],
+                      'root_cause_summary': '【证据不足】需人工审核。',
+                      'responsibility_judgement': '【待人工审核】证据不足，仅建议方向。',
+                      'corrective_actions': '【证据不足】需人工补充。',
+                      'preventive_actions': '【证据不足】需人工补充。',
+                      'customer_side_actions': '【证据不足】需人工补充。',
+                      'internal_quality_actions': '【证据不足】需人工补充。',
+                      'evidence_citation': ['仅使用用户输入事实（MVP无知识库）'],
+                      'audit_metrics': {
+                          'evidence_sufficiency': '低',
+                          'responsibility_confidence': 30,
+                          'risk_tips': ['模型输出解析失败，已启用兜底内容'],
+                          'hallucination_check': '疑似'
+                      }
+                  }
+
+              if 'audit_metrics' not in generated or not isinstance(generated['audit_metrics'], dict):
+                  generated['audit_metrics'] = {}
+              generated['audit_metrics'].setdefault('evidence_sufficiency', '中')
+              generated['audit_metrics'].setdefault('responsibility_confidence', 60)
+              generated['audit_metrics'].setdefault('risk_tips', [])
+              generated['audit_metrics'].setdefault('hallucination_check', '无')
+
+              confidence = generated['audit_metrics'].get('responsibility_confidence', 60)
+              try:
+                  confidence = int(confidence)
+              except Exception:
+                  confidence = 60
+              confidence = max(0, min(100, confidence))
+              generated['audit_metrics']['responsibility_confidence'] = confidence
+
+              if retrieval_status == 'failed':
+                  generated['audit_metrics']['risk_tips'].append('未接入知识库，仅基于输入事实分析。')
+
+              if missing_required_fields:
+                  generated['audit_metrics']['risk_tips'].append(
+                      '核心字段缺失：' + ', '.join(missing_required_fields)
+                  )
+
+              final_json = {
+                  'report_id': report_id,
+                  'basic_info': {
+                      'customer_name': customer_name,
+                      'site_name': site_name,
+                      'device_model': device_model,
+                      'device_sn': device_sn,
+                      'fault_time': fault_time,
+                      'fault_count': fault_count,
+                      'fault_description': fault_description
+                  },
+                  'sections': generated,
+                  'audit_metrics': generated.get('audit_metrics', {}),
+                  'ext_info': {
+                      'retrieval_status': retrieval_status,
+                      'fallback_notes': fallback_notes,
+                      'missing_required_fields': missing_required_fields
+                  }
+              }
+
+              return {
+                  'final_json': json.dumps(final_json, ensure_ascii=False, indent=2)
+              }
+        code_language: python3
+        desc: 聚合最终JSON并做兜底校验
+        outputs:
+          final_json:
+            children: null
+            type: string
+        selected: false
+        title: assemble_final_json
+        type: code
+        variables:
+        - value_selector:
+          - '1000000000003'
+          - text
+          variable: llm_text
+        - value_selector:
+          - '1000000000002'
+          - report_id
+          variable: report_id
+        - value_selector:
+          - '1000000000002'
+          - customer_name
+          variable: customer_name
+        - value_selector:
+          - '1000000000002'
+          - site_name
+          variable: site_name
+        - value_selector:
+          - '1000000000002'
+          - device_model
+          variable: device_model
+        - value_selector:
+          - '1000000000002'
+          - device_sn
+          variable: device_sn
+        - value_selector:
+          - '1000000000002'
+          - fault_time
+          variable: fault_time
+        - value_selector:
+          - '1000000000002'
+          - fault_count
+          variable: fault_count
+        - value_selector:
+          - '1000000000002'
+          - fault_description
+          variable: fault_description
+        - value_selector:
+          - '1000000000002'
+          - retrieval_status
+          variable: retrieval_status
+        - value_selector:
+          - '1000000000002'
+          - fallback_notes
+          variable: fallback_notes
+        - value_selector:
+          - '1000000000002'
+          - missing_required_fields
+          variable: missing_required_fields
+      height: 260
+      id: '1000000000004'
+      position:
+        x: 1260
+        y: 180
+      positionAbsolute:
+        x: 1260
+        y: 180
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 320
+    - data:
+        desc: 输出结构化报告JSON
+        outputs:
+        - value_selector:
+          - '1000000000004'
+          - final_json
+          variable: final_json
+        selected: false
+        title: 输出结果
+        type: end
+      height: 100
+      id: '1000000000005'
+      position:
+        x: 1660
+        y: 180
+      positionAbsolute:
+        x: 1660
+        y: 180
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 260
     viewport:
       x: 0
       y: 0
-      zoom: 1
+      zoom: 0.8
   rag_pipeline_variables: []
