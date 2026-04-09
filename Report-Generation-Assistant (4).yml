@@ -295,7 +295,7 @@ workflow:
               try:
                   n = int(str(v).strip())
                   return n if n > 0 else default
-              except Exception:
+              except (ValueError, TypeError):
                   return default
 
           def _keywords(*parts):
@@ -304,7 +304,7 @@ workflow:
                   s = _norm(p, '')
                   if not s:
                       continue
-                  for t in re.split(r'[\s,，;；。.!！？/\\\-\|]+', s):
+                  for t in re.split(r'[\s,，;；。.!！？/\\|-]+', s):
                       t = t.strip()
                       if len(t) >= 2:
                           tokens.append(t)
@@ -529,14 +529,17 @@ workflow:
       width: 320
     - data:
         code: |
+          MVP_HISTORY_FALLBACK = '无匹配历史案例（MVP阶段未接入历史案例知识库）'
+          MVP_HISTORY_PLACEHOLDER_NOTE = '当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。'
+
           def main(
               retrieval_keywords: list = None,
               device_model: str = '',
               fault_description: str = ''
           ) -> dict:
               kws = retrieval_keywords or []
-              fallback = ['无匹配历史案例（MVP阶段未接入历史案例知识库）']
-              notes = ['当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。']
+              fallback = [MVP_HISTORY_FALLBACK]
+              notes = [MVP_HISTORY_PLACEHOLDER_NOTE]
               if not kws:
                   notes.append('检索关键词为空，使用默认兜底片段。')
               snippets = fallback
@@ -593,6 +596,9 @@ workflow:
       width: 320
     - data:
         code: |
+          MVP_PRODUCT_FALLBACK = '无匹配产品知识（MVP阶段未接入产品知识库）'
+          MVP_PRODUCT_PLACEHOLDER_NOTE = '当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。'
+
           def main(
               retrieval_keywords: list = None,
               possible_parts: list = None,
@@ -601,8 +607,8 @@ workflow:
               kws = retrieval_keywords or []
               parts = possible_parts or []
               envs = possible_environment_factors or []
-              fallback = ['无匹配产品知识（MVP阶段未接入产品知识库）']
-              notes = ['当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。']
+              fallback = [MVP_PRODUCT_FALLBACK]
+              notes = [MVP_PRODUCT_PLACEHOLDER_NOTE]
               if not kws and not parts and not envs:
                   notes.append('缺少可检索线索，使用默认兜底片段。')
               snippets = fallback
@@ -979,8 +985,9 @@ workflow:
               try:
                   if isinstance(text, dict):
                       return text
-                  return json.loads(text)
-              except Exception:
+                  parsed = json.loads(text)
+                  return parsed if isinstance(parsed, dict) else fallback
+              except (json.JSONDecodeError, TypeError):
                   return fallback
 
           def _ensure_list(v):
@@ -998,7 +1005,7 @@ workflow:
                       score = int(float(v.strip()))
                   else:
                       score = int(v)
-              except Exception:
+              except (ValueError, TypeError):
                   score = DEFAULT_CONFIDENCE
                   corrected = True
               bounded = max(0, min(100, score))
@@ -1058,9 +1065,8 @@ workflow:
               })
               n9 = _parse_json(n9_text, {})
 
-              audit_metrics = n7.get('audit_metrics', {}) if isinstance(n7, dict) else {}
-              if not isinstance(audit_metrics, dict):
-                  audit_metrics = {}
+              audit_metrics_raw = n7.get('audit_metrics', {}) if isinstance(n7, dict) else {}
+              audit_metrics = audit_metrics_raw if isinstance(audit_metrics_raw, dict) else {}
               audit_metrics.setdefault('evidence_sufficiency', '中')
               audit_metrics.setdefault('responsibility_confidence', DEFAULT_CONFIDENCE)
               audit_metrics.setdefault('risk_tips', [])
