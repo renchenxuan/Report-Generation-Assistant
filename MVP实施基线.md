@@ -38,6 +38,8 @@
 }
 ```
 
+说明：`fault_time` 的 `format: date-time` 按 ISO 8601/RFC3339 时间戳校验。
+
 ### 2.2 assemble_final_json 校验规则
 - 严格按 Schema 校验。
 - `fault_time` 必须符合 ISO 8601（示例：`2025-04-09T07:44:08Z`）。
@@ -128,6 +130,7 @@
 
 口径约定：
 - `responsibility_confidence` 取值范围固定为 0~100（整数）。
+- 实际实现中应按数值类型校验（`type: integer`, `minimum: 0`, `maximum: 100`），禁止字符串形式分值（如 `"80"`）。
 - 评分建议由责任归属节点基于证据完整性、事实一致性、历史案例匹配度三项综合给出。
 - 若证据不足，分值应下调并同步写入 `risk_tips`。
 
