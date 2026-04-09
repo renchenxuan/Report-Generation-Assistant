@@ -234,13 +234,15 @@ workflow:
         code: "import re\nfrom datetime import datetime\n\ndef norm(v, default=\"\
           无\"):\n    if v is None:\n        return default\n    s = str(v).strip()\n\
           \    return s if s else default\n\ndef parse_fault_count(v):\n    try:\n\
-          \        n = int(v)\n        return n if n >= 1 else 1\n    except Exception:\n\
-          \        return 1\n\ndef sanitize_text(v):\n    s = norm(v, \"无\")\n   \
-          \ return re.sub(r\"\\s+\", \" \", s)\n\ndef validate_datetime(v):\n    s\
-          \ = norm(v, \"\")\n    if not s:\n        return False\n    try:\n     \
-          \   # 支持 Z 结尾与 ±HH:MM 时区偏移（RFC3339 常用子集）\n        datetime.fromisoformat(s.replace(\"\
-          Z\", \"+00:00\"))\n        return True\n    except Exception:\n        return\
-          \ False\n\ndef main(report_id, customer_name, site_name, device_type, device_model,\
+          \        # Dify start 节点数值控件使用 number，业务侧按整数语义处理\n        f = float(v)\n\
+          \        if not f.is_integer():\n            return 1\n        n = int(f)\n\
+          \        return n if n >= 1 else 1\n    except Exception:\n        return\
+          \ 1\n\ndef sanitize_text(v):\n    s = norm(v, \"无\")\n    return re.sub(r\"\
+          \\s+\", \" \", s)\n\ndef validate_datetime(v):\n    s = norm(v, \"\")\n\
+          \    if not s:\n        return False\n    try:\n        # 支持 Z 结尾与 ±HH:MM\
+          \ 时区偏移（RFC3339 常用子集）\n        datetime.fromisoformat(s.replace(\"Z\", \"\
+          +00:00\"))\n        return True\n    except Exception:\n        return False\n\
+          \ndef main(report_id, customer_name, site_name, device_type, device_model,\
           \ device_sn, fault_time, fault_count, fault_description, fault_cause, event_record_text,\
           \ waveform_analysis_text, overall_appearance_text, upper_board_text, lower_board_text,\
           \ power_device_measure_text, site_research_text):\n    optional_blank_fields\

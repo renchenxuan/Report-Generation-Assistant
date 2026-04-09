@@ -24,6 +24,7 @@
     "device_sn": {"type": "string", "default": ""},
     "fault_time": {"type": "string", "format": "date-time"},
     "fault_count": {"type": "integer", "minimum": 1, "default": 1},
+    "fault_count_note": "Dify Start 节点变量类型使用 number，但预处理按整数语义校验并兜底为 >=1 的整数",
     "fault_description": {"type": "string", "minLength": 1},
     "fault_cause": {"type": "string", "default": ""},
     "event_record_text": {"type": "string", "default": "无"},
