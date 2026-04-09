@@ -1,0 +1,229 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 故障原因总结
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: yangyaofei/vllm:0.1.5@3eecf807d9767f40eb757ff70720291aa6055e9e1803893b4c93b61a5d4d4319
+    version: null
+kind: app
+version: 0.5.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - document
+      allowed_file_upload_methods:
+      - remote_url
+      - local_file
+      enabled: true
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: llm-answer
+      source: llm
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: document-extractor
+      id: 1775652823347-source-1775655626288-target
+      source: '1775652823347'
+      sourceHandle: source
+      target: '1775655626288'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: document-extractor
+        targetType: llm
+      id: 1775655626288-source-llm-target
+      source: '1775655626288'
+      sourceHandle: source
+      target: llm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 用户输入
+        type: start
+        variables:
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - document
+          allowed_file_upload_methods:
+          - local_file
+          default: ''
+          hide: true
+          hint: ''
+          label: report_file
+          max_length: 48
+          options: []
+          placeholder: ''
+          required: false
+          type: file
+          variable: report_file
+      height: 108
+      id: '1775652823347'
+      position:
+        x: 79
+        y: 284
+      positionAbsolute:
+        x: 79
+        y: 284
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1775655626288'
+          - text
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.3
+          mode: chat
+          name: chatgpt-oss-120b
+          provider: yangyaofei/vllm/vllm
+        prompt_template:
+        - id: 48d0b58f-ba15-46fc-83ef-3b9c6229afe7
+          role: system
+          text: "# 角色\n你是逆变器质量分析专家，擅长从质量报告内容{{#1775655626288.text#}}}中精准提炼关键故障信息。\n\
+            \n# 任务\n请仔细阅读用户提供的质量分析报告文档内容，提取核心故障原因。\n\n# 输出规则\n1. **字数限制**：故障原因描述不超过30个中文字符（含标点）\n\
+            2. **内容要求**：\n   - 只提取根本原因，不含解决方案、建议或过程描述\n   - 使用客观、专业的技术术语\n   - 剔除冗余修饰词（如\"\
+            严重的\"、\"长期的\"等）\n   - 若存在多个原因，用顿号分隔，保留最关键的前3个\n3. **格式**：仅输出故障原因文本，不添加任何解释、前缀或编号\n\
+            \n# 示例\n输入：\"A相T3的IGBT先损坏导致整机炸机，测试IBGT驱动无异常，未发现作业和单板制成的问题，判定为IGBT损坏导致失效。\"\
+            \n输出：IGBT损坏导致失效\n\n输入：\"故障结论：\n逆变器门板螺钉未打紧进水导致逆变器内部短路失效。\"\n输出：逆变器门板螺钉未打紧进水导致逆变器内部短路失效\n\
+            \n输入：\"原因总结：\n逆变器线缆缠绕方式存在隐患：线缆较重，由于长度有差异，长度较短的会存在较大的受力拉扯（承担其他线缆重量），导致直流端子虚接，阻抗过大发生起火。\"\
+            \n输出：逆变器线缆缠绕方式存在隐患，导致直流端子虚接，阻抗过大发生起火\n\n输入：\"经检测，发现产品表面出现划痕，主要原因是模具表面光洁度不足导致塑料件脱模时产生摩擦痕迹，建议更换模具\"\
+            \n输出：模具表面光洁度不足导致塑料件脱模摩擦\n\n输入：\"客户投诉设备运行异响，经拆解分析系轴承润滑油脂干涸以及齿轮啮合间隙过大造成机械振动\"\
+            \n输出：轴承润滑油脂干涸、齿轮啮合间隙过大\n\n# 待处理文档\n{在此处粘贴质量分析报告内容}"
+        selected: false
+        title: LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: llm
+      position:
+        x: 743.9314451187455
+        y: 278.55390493500886
+      positionAbsolute:
+        x: 743.9314451187455
+        y: 278.55390493500886
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#llm.text#}}'
+        selected: false
+        title: 直接回复
+        type: answer
+        variables: []
+      height: 102
+      id: answer
+      position:
+        x: 1088.3803187955423
+        y: 254.4312394800712
+      positionAbsolute:
+        x: 1088.3803187955423
+        y: 254.4312394800712
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        is_array_file: false
+        selected: false
+        title: 文档提取器
+        type: document-extractor
+        variable_selector:
+        - '1775652823347'
+        - report_file
+      height: 103
+      id: '1775655626288'
+      position:
+        x: 401.2529724610322
+        y: 297.3160018175935
+      positionAbsolute:
+        x: 401.2529724610322
+        y: 297.3160018175935
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -737.2131827662308
+      y: 80.07728846703776
+      zoom: 1.1486983549970364
+  rag_pipeline_variables: []
