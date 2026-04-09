@@ -54,7 +54,7 @@ workflow:
             - { label: device_model, variable: device_model, type: text-input, required: true }
             - { label: device_sn, variable: device_sn, type: text-input, required: false }
             - { label: fault_time, variable: fault_time, type: text-input, required: true }
-            - { label: fault_count, variable: fault_count, type: number, required: false, default: 1 }
+            - { label: fault_count, variable: fault_count, type: integer, required: false, default: 1 }
             - { label: fault_description, variable: fault_description, type: paragraph, required: true }
             - { label: fault_cause, variable: fault_cause, type: paragraph, required: false }
             - { label: event_record_text, variable: event_record_text, type: paragraph, required: false }
@@ -365,6 +365,7 @@ workflow:
             final_json: { type: string }
           code: |
             import json
+            CONSERVATIVE_CONFIDENCE_DEFAULT = 30
 
             def parse_obj(s):
                 if not s:
@@ -383,7 +384,7 @@ workflow:
                     return []
                 return [str(v)]
 
-            def safe_int(v, default=30):
+            def safe_int(v, default=CONSERVATIVE_CONFIDENCE_DEFAULT):
                 try:
                     n = int(v)
                     return max(0, min(100, n))
@@ -410,10 +411,10 @@ workflow:
                 history_empty = is_retrieval_empty(history_result)
                 product_empty = is_retrieval_empty(product_result)
                 raw_confidence = root.get("responsibility_confidence", None)
-                confidence = safe_int(raw_confidence, 30)
+                confidence = safe_int(raw_confidence, CONSERVATIVE_CONFIDENCE_DEFAULT)
                 risk_tips = ensure_list(root.get("risk_tips", []))
                 if raw_confidence is None:
-                    risk_tips.append("【风险提示】responsibility_confidence 缺失，已按保守默认值30处理")
+                    risk_tips.append(f"【风险提示】responsibility_confidence 缺失，已按保守默认值{CONSERVATIVE_CONFIDENCE_DEFAULT}处理")
 
                 merged = {
                     "report_id": report_id,
