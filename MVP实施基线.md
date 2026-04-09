@@ -40,7 +40,7 @@
 
 ### 2.2 assemble_final_json 校验规则
 - 严格按 Schema 校验。
-- `fault_time` 必须符合 ISO 8601（示例：`2026-04-09T07:44:08Z`）。
+- `fault_time` 必须符合 ISO 8601（示例：`2025-04-09T07:44:08Z`）。
 - 核心字段缺失（如 `device_model`、`fault_time`、`fault_description`）：
   - 返回异常（建议 400）
   - 返回明确提示（如“缺少设备型号，无法生成报告”）
