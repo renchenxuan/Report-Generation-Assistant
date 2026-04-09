@@ -514,7 +514,7 @@ workflow:
                       'temporary_measures': '【证据不足】需人工补充。',
                       'five_why_table': [],
                       'root_cause_summary': '【证据不足】需人工审核。',
-                      'responsibility_judgement': '【待人工审核】证据不足，仅建议方向。',
+                      'responsibility_judgement': '【证据不足】【待人工审核】证据不足，仅建议方向。',
                       'corrective_actions': '【证据不足】需人工补充。',
                       'preventive_actions': '【证据不足】需人工补充。',
                       'customer_side_actions': '【证据不足】需人工补充。',
@@ -535,13 +535,18 @@ workflow:
               generated['audit_metrics'].setdefault('risk_tips', [])
               generated['audit_metrics'].setdefault('hallucination_check', '无')
 
-              confidence = generated['audit_metrics'].get('responsibility_confidence', 60)
+              raw_confidence = generated['audit_metrics'].get('responsibility_confidence', 60)
+              confidence = raw_confidence
               try:
                   confidence = int(confidence)
               except Exception:
                   confidence = 60
               confidence = max(0, min(100, confidence))
               generated['audit_metrics']['responsibility_confidence'] = confidence
+              if str(raw_confidence) != str(confidence):
+                  generated['audit_metrics']['risk_tips'].append(
+                      'responsibility_confidence 非法或越界，已自动校正到 0~100 整数范围。'
+                  )
 
               if retrieval_status == 'failed':
                   generated['audit_metrics']['risk_tips'].append('未接入知识库，仅基于输入事实分析。')
