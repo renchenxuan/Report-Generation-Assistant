@@ -17,9 +17,18 @@ workflow:
   features:
     file_upload:
       enabled: false
-      allowed_file_extensions: []
-      allowed_file_types: []
-      allowed_file_upload_methods: []
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - document
+      allowed_file_upload_methods:
+      - remote_url
+      - local_file
       number_limits: 3
       fileUploadConfig:
         image_file_size_limit: 10
