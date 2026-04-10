@@ -602,15 +602,15 @@ workflow:
 
             严格规则：
 
-            1) 仅可基于【事实摘要】与证据片段生成，不得新增任何未给定事实；
+            - 仅可基于【事实摘要】与证据片段生成，不得新增任何未给定事实；
 
-            2) 每条关键表述必须可被输入依据支持；无法支持时写“【证据不足】”，不得强行补全；
+            - 每条关键表述必须可被输入依据支持；无法支持时写“【证据不足】”，不得强行补全；
 
-            3) 历史案例仅作参考，不得当作本次已发生事实；
+            - 历史案例仅作参考，不得当作本次已发生事实；
 
-            4) 输出中严禁出现绝对化用语（如“确定”“必然”）除非输入事实明确给出；
+            - 输出中严禁出现绝对化用语（如“确定”“必然”），除非输入事实明确给出；
 
-            5) 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, evidence_citation。
+            - 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, evidence_citation。
 
             '
         - id: user-prompt
@@ -620,9 +620,9 @@ workflow:
             {{#1000000000002.fact_summary#}}
 
 
-            【历史案例证据】
+             【历史案例证据】
 
-            {{#1000000000003.history_cases_snippets#}}
+             {{#1000000000003.history_cases_snippets#}}
 
 
              【产品知识证据】
@@ -689,17 +689,17 @@ workflow:
 
             严格规则：
 
-            1) 仅基于输入事实与证据输出 5Y，禁止臆造；
+            - 仅基于输入事实与证据输出 5Y，禁止臆造；
 
-            2) 5Y 必须是“问题追问链”，question_index 仅允许 1~5 且递增；
+            - 5Y 必须是“问题追问链”，question_index 仅允许 1~5 且递增；
 
-            3) 每一层 analysis 仅写被证据支持的内容；证据不足时明确写“【证据不足】”；
+            - 每一层 analysis 仅写被证据支持的内容；证据不足时明确写“【证据不足】”；
 
-            4) 不得把“历史案例中的结论”直接当作本案结论；
+            - 不得把“历史案例中的结论”直接当作本案结论；
 
-            5) 输出必须是合法 JSON，仅包含键：five_why_table, evidence_citation；
+            - 输出必须是合法 JSON，仅包含键：five_why_table, evidence_citation；
 
-            6) five_why_table 为数组，每项含 question_index, question, analysis。
+            - five_why_table 为数组，每项含 question_index, question, analysis。
 
             '
         - id: user-prompt
@@ -714,9 +714,9 @@ workflow:
             {{#1000000000002.normalized_fault_summary#}}
 
 
-            【历史案例证据】
+             【历史案例证据】
 
-            {{#1000000000003.history_cases_snippets#}}
+             {{#1000000000003.history_cases_snippets#}}
 
 
              【产品知识证据】
@@ -783,19 +783,19 @@ workflow:
 
             严格规则：
 
-            1) 仅基于输入依据生成，不得新增事实；
+            - 仅基于输入依据生成，不得新增事实；
 
-            2) 上游“5Y结果”仅可作为候选假设，必须二次核验；若与事实冲突，以事实为准；
+            - 上游“5Y结果”仅可作为候选假设，必须二次核验；若与事实冲突，以事实为准；
 
-            3) 责任归属只允许“建议方向”，并包含“【待人工审核】”；
+            - 责任归属只允许“建议方向”，并包含“【待人工审核】”；
 
-            4) 证据不足时必须降级表达，显式写“【证据不足】”；
+            - 证据不足时必须降级表达，显式写“【证据不足】”；
 
-            5) 输出必须是合法 JSON，仅包含键：root_cause_summary, responsibility_judgement, audit_metrics, evidence_citation；
+            - 输出必须是合法 JSON，仅包含键：root_cause_summary, responsibility_judgement, audit_metrics, evidence_citation；
 
-            6) audit_metrics 必含键：evidence_sufficiency, responsibility_confidence, risk_tips, hallucination_check；
+            - audit_metrics 必含键：evidence_sufficiency, responsibility_confidence, risk_tips, hallucination_check；
 
-            7) responsibility_confidence 必须是 0~100 整数；若存在冲突或证据不足，risk_tips 必须写明原因。
+            - responsibility_confidence 必须是 0~100 整数；若存在冲突或证据不足，risk_tips 必须写明原因。
 
             '
         - id: user-prompt
@@ -810,9 +810,9 @@ workflow:
             {{#1000000000006.text#}}
 
 
-            【历史案例证据】
+             【历史案例证据】
 
-            {{#1000000000003.history_cases_snippets#}}
+             {{#1000000000003.history_cases_snippets#}}
 
 
              【产品知识证据】
@@ -879,15 +879,15 @@ workflow:
 
             严格规则：
 
-            1) 仅基于输入依据生成，不得新增未提供事实；
+            - 仅基于输入依据生成，不得新增未提供事实；
 
-            2) 上游“根因与责任建议”仅作候选输入，不得无条件继承，需与事实/证据二次对齐；
+            - 上游“根因与责任建议”仅作候选输入，不得无条件继承，需与事实/证据二次对齐；
 
-            3) 方案必须可执行且与本案事实一致；若无法证明可执行性，写“【证据不足】”；
+            - 方案必须可执行且与本案事实一致；若无法证明可执行性，写“【证据不足】”；
 
-            4) 严禁输出与已知事实冲突的措施；若存在冲突风险，在对应条目显式标注“【存在冲突待核】”；
+            - 严禁输出与已知事实冲突的措施；若存在冲突风险，在对应条目显式标注“【存在冲突待核】”；
 
-            5) 输出必须是合法 JSON，仅包含键：temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation。
+            - 输出必须是合法 JSON，仅包含键：temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation。
 
             '
         - id: user-prompt
@@ -902,9 +902,9 @@ workflow:
             {{#1000000000007.text#}}
 
 
-            【历史案例证据】
+             【历史案例证据】
 
-            {{#1000000000003.history_cases_snippets#}}
+             {{#1000000000003.history_cases_snippets#}}
 
 
              【产品知识证据】
@@ -971,13 +971,13 @@ workflow:
 
             严格规则：
 
-            1) 仅修正文风与结构，不得补充任何新事实；
+            - 仅修正文风与结构，不得补充任何新事实；
 
-            2) 不得把“证据不足”改写成确定性结论；
+            - 不得把“证据不足”改写成确定性结论；
 
-            3) 若上游字段间存在明显冲突，保留冲突并显式写“【存在冲突待核】”，不得自行裁决；
+            - 若上游字段间存在明显冲突，保留冲突并显式写“【存在冲突待核】”，不得自行裁决；
 
-            4) 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, five_why_table, root_cause_summary, responsibility_judgement, temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation。
+            - 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, five_why_table, root_cause_summary, responsibility_judgement, temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation。
 
             '
         - id: user-prompt
