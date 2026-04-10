@@ -121,9 +121,20 @@ workflow:
     - data:
         isInIteration: false
         sourceType: llm
-        targetType: llm
-      id: 1000000000006-source-1000000000007-target
+        targetType: code
+      id: 1000000000006-source-1000000000012-target
       source: '1000000000006'
+      sourceHandle: source
+      target: '1000000000012'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: llm
+      id: 1000000000012-source-1000000000007-target
+      source: '1000000000012'
       sourceHandle: source
       target: '1000000000007'
       targetHandle: target
@@ -143,9 +154,20 @@ workflow:
     - data:
         isInIteration: false
         sourceType: llm
-        targetType: llm
-      id: 1000000000008-source-1000000000009-target
+        targetType: code
+      id: 1000000000008-source-1000000000013-target
       source: '1000000000008'
+      sourceHandle: source
+      target: '1000000000013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: llm
+      id: 1000000000013-source-1000000000009-target
+      source: '1000000000013'
       sourceHandle: source
       target: '1000000000009'
       targetHandle: target
@@ -289,54 +311,123 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import re\n\ndef _norm(v, default='无'):\n    if v is None:\n      \
-          \  return default\n    s = str(v).strip()\n    return s if s else default\n\
-          \ndef _to_int(v, default=1):\n    try:\n        n = int(str(v).strip())\n\
-          \        return n if n > 0 else default\n    except (ValueError, TypeError):\n\
-          \        return default\n\ndef _keywords(*parts):\n    tokens = []\n   \
-          \ for p in parts:\n        s = _norm(p, '')\n        if not s:\n       \
-          \     continue\n        for t in re.split(r'[\\s,，;；。.!！？/\\\\|-]+', s):\n\
-          \            t = t.strip()\n            if len(t) >= 2:\n              \
-          \  tokens.append(t)\n    dedup = []\n    seen = set()\n    for t in tokens:\n\
-          \        if t not in seen:\n            seen.add(t)\n            dedup.append(t)\n\
-          \    return dedup[:12]\n\ndef main(\n    report_id: str = '',\n    customer_name:\
-          \ str = '',\n    site_name: str = '',\n    device_model: str = '',\n   \
-          \ device_sn: str = '',\n    fault_time: str = '',\n    fault_count: str\
-          \ = '1',\n    fault_description: str = '',\n    fault_cause: str = '',\n\
-          \    event_record_text: str = '',\n    waveform_analysis_text: str = '',\n\
-          \    overall_appearance_text: str = '',\n    upper_board_text: str = '',\n\
-          \    lower_board_text: str = '',\n    power_device_measure_text: str = '',\n\
-          \    site_research_text: str = ''\n) -> dict:\n    missing = []\n    if\
-          \ not str(device_model).strip():\n        missing.append('device_model')\n\
-          \    if not str(fault_time).strip():\n        missing.append('fault_time')\n\
-          \    if not str(fault_description).strip():\n        missing.append('fault_description')\n\
-          \n    normalized_fault_summary = '；'.join([\n        f\"机型：{_norm(device_model,\
-          \ '')}\",\n        f\"时间：{_norm(fault_time, '')}\",\n        f\"问题：{_norm(fault_description,\
-          \ '')}\",\n        f\"导向：{_norm(fault_cause)}\"\n    ])\n\n    retrieval_keywords\
-          \ = _keywords(\n        device_model,\n        fault_description,\n    \
-          \    fault_cause,\n        event_record_text,\n        waveform_analysis_text\n\
-          \    )\n\n    possible_parts = _keywords(\n        upper_board_text,\n \
-          \       lower_board_text,\n        power_device_measure_text\n    )\n  \
-          \  possible_environment_factors = _keywords(site_research_text, overall_appearance_text)\n\
-          \n    fact_summary = '\\n'.join([\n        f\"客户名称：{_norm(customer_name)}\"\
-          ,\n        f\"现场名称：{_norm(site_name)}\",\n        f\"设备型号：{_norm(device_model,\
-          \ '')}\",\n        f\"设备条码：{_norm(device_sn)}\",\n        f\"故障时间：{_norm(fault_time,\
-          \ '')}\",\n        f\"故障数量：{_to_int(fault_count)}\",\n        f\"故障描述：{_norm(fault_description,\
-          \ '')}\",\n        f\"故障原因导向：{_norm(fault_cause)}\",\n        f\"事件记录分析：{_norm(event_record_text)}\"\
-          ,\n        f\"波形分析：{_norm(waveform_analysis_text)}\",\n        f\"整体外观分析：{_norm(overall_appearance_text)}\"\
-          ,\n        f\"开盖上层板分析：{_norm(upper_board_text)}\",\n        f\"开盖下层板分析：{_norm(lower_board_text)}\"\
-          ,\n        f\"功率器件测量分析：{_norm(power_device_measure_text)}\",\n        f\"\
-          现场调研分析：{_norm(site_research_text)}\"\n    ])\n\n    return {\n        'report_id':\
-          \ _norm(report_id, ''),\n        'customer_name': _norm(customer_name),\n\
-          \        'site_name': _norm(site_name),\n        'device_model': _norm(device_model,\
-          \ ''),\n        'device_sn': _norm(device_sn),\n        'fault_time': _norm(fault_time,\
-          \ ''),\n        'fault_count': _to_int(fault_count),\n        'fault_description':\
-          \ _norm(fault_description, ''),\n        'fault_cause': _norm(fault_cause),\n\
-          \        'normalized_fault_summary': normalized_fault_summary,\n       \
-          \ 'retrieval_keywords': retrieval_keywords,\n        'possible_parts': possible_parts,\n\
-          \        'possible_environment_factors': possible_environment_factors,\n\
-          \        'fact_summary': fact_summary,\n        'missing_required_fields':\
-          \ missing\n    }\n"
+        code: |
+          import re
+
+          def _norm(v, default='无'):
+              if v is None:
+                  return default
+              s = str(v).strip()
+              return s if s else default
+
+          def _to_int(v, default=1):
+              try:
+                  n = int(str(v).strip())
+                  return n if n > 0 else default
+              except (ValueError, TypeError):
+                  return default
+
+          def _keywords(*parts):
+              tokens = []
+              for p in parts:
+                  s = _norm(p, '')
+                  if not s:
+                      continue
+                  for t in re.split(r'[\s,，;；。.!！？/\\|-]+', s):
+                      t = t.strip()
+                      if len(t) >= 2:
+                          tokens.append(t)
+              dedup = []
+              seen = set()
+              for t in tokens:
+                  if t not in seen:
+                      seen.add(t)
+                      dedup.append(t)
+              return dedup[:12]
+
+          def main(
+              report_id: str = '',
+              customer_name: str = '',
+              site_name: str = '',
+              device_model: str = '',
+              device_sn: str = '',
+              fault_time: str = '',
+              fault_count: str = '1',
+              fault_description: str = '',
+              fault_cause: str = '',
+              event_record_text: str = '',
+              waveform_analysis_text: str = '',
+              overall_appearance_text: str = '',
+              upper_board_text: str = '',
+              lower_board_text: str = '',
+              power_device_measure_text: str = '',
+              site_research_text: str = ''
+          ) -> dict:
+              missing = []
+              if not str(device_model).strip():
+                  missing.append('device_model')
+              if not str(fault_time).strip():
+                  missing.append('fault_time')
+              if not str(fault_description).strip():
+                  missing.append('fault_description')
+
+              normalized_fault_summary = '；'.join([
+                  f"机型：{_norm(device_model, '')}",
+                  f"时间：{_norm(fault_time, '')}",
+                  f"问题：{_norm(fault_description, '')}",
+                  f"导向：{_norm(fault_cause)}"
+              ])
+
+              retrieval_keywords = _keywords(
+                  device_model,
+                  fault_description,
+                  fault_cause,
+                  event_record_text,
+                  waveform_analysis_text
+              )
+
+              possible_parts = _keywords(
+                  upper_board_text,
+                  lower_board_text,
+                  power_device_measure_text
+              )
+              possible_environment_factors = _keywords(site_research_text, overall_appearance_text)
+
+              fact_summary = '\n'.join([
+                  f"客户名称：{_norm(customer_name)}",
+                  f"现场名称：{_norm(site_name)}",
+                  f"设备型号：{_norm(device_model, '')}",
+                  f"设备条码：{_norm(device_sn)}",
+                  f"故障时间：{_norm(fault_time, '')}",
+                  f"故障数量：{_to_int(fault_count)}",
+                  f"故障描述：{_norm(fault_description, '')}",
+                  f"故障原因导向：{_norm(fault_cause)}",
+                  f"事件记录分析：{_norm(event_record_text)}",
+                  f"波形分析：{_norm(waveform_analysis_text)}",
+                  f"整体外观分析：{_norm(overall_appearance_text)}",
+                  f"开盖上层板分析：{_norm(upper_board_text)}",
+                  f"开盖下层板分析：{_norm(lower_board_text)}",
+                  f"功率器件测量分析：{_norm(power_device_measure_text)}",
+                  f"现场调研分析：{_norm(site_research_text)}"
+              ])
+
+              return {
+                  'report_id': _norm(report_id, ''),
+                  'customer_name': _norm(customer_name),
+                  'site_name': _norm(site_name),
+                  'device_model': _norm(device_model, ''),
+                  'device_sn': _norm(device_sn),
+                  'fault_time': _norm(fault_time, ''),
+                  'fault_count': _to_int(fault_count),
+                  'fault_description': _norm(fault_description, ''),
+                  'fault_cause': _norm(fault_cause),
+                  'normalized_fault_summary': normalized_fault_summary,
+                  'retrieval_keywords': retrieval_keywords,
+                  'possible_parts': possible_parts,
+                  'possible_environment_factors': possible_environment_factors,
+                  'fact_summary': fact_summary,
+                  'missing_required_fields': missing
+              }
         code_language: python3
         desc: 输入清洗与关键词提取
         outputs:
@@ -467,15 +558,25 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "MVP_HISTORY_FALLBACK = '无匹配历史案例（MVP阶段未接入历史案例知识库）'\nMVP_HISTORY_PLACEHOLDER_NOTE\
-          \ = '当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。'\n\ndef main(\n    retrieval_keywords:\
-          \ list = None,\n    device_model: str = '',\n    fault_description: str\
-          \ = ''\n) -> dict:\n    kws = retrieval_keywords or []\n    fallback = [MVP_HISTORY_FALLBACK]\n\
-          \    notes = [MVP_HISTORY_PLACEHOLDER_NOTE]\n    if not kws:\n        notes.append('检索关键词为空，使用默认兜底片段。')\n\
-          \    snippets = fallback\n    status = 'failed'\n    query_preview = f\"\
-          {device_model} | {fault_description}\".strip()\n    return {\n        'history_cases_snippets':\
-          \ snippets,\n        'history_retrieval_status': status,\n        'history_retrieval_notes':\
-          \ notes,\n        'history_query_preview': query_preview\n    }\n"
+        code: |
+          MVP_HISTORY_PLACEHOLDER_NOTE = '当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。'
+
+          def main(
+              retrieval_keywords: list = None,
+              device_model: str = '',
+              fault_description: str = ''
+          ) -> dict:
+              kws = retrieval_keywords or []
+              notes = [MVP_HISTORY_PLACEHOLDER_NOTE, 'MVP 阶段未接入历史案例知识库，返回空证据数组。']
+              if not kws:
+                  notes.append('检索关键词为空，无法执行历史案例检索。')
+              query_preview = f"{device_model} | {fault_description}".strip()
+              return {
+                  'history_cases_snippets': [],
+                  'history_retrieval_status': 'no_knowledge_base',
+                  'history_retrieval_notes': notes,
+                  'history_query_preview': query_preview
+              }
         code_language: python3
         desc: 历史案例检索占位（无知识库）
         outputs:
@@ -521,17 +622,27 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "MVP_PRODUCT_FALLBACK = '无匹配产品知识（MVP阶段未接入产品知识库）'\nMVP_PRODUCT_PLACEHOLDER_NOTE\
-          \ = '当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。'\n\ndef main(\n    retrieval_keywords:\
-          \ list = None,\n    possible_parts: list = None,\n    possible_environment_factors:\
-          \ list = None\n) -> dict:\n    kws = retrieval_keywords or []\n    parts\
-          \ = possible_parts or []\n    envs = possible_environment_factors or []\n\
-          \    fallback = [MVP_PRODUCT_FALLBACK]\n    notes = [MVP_PRODUCT_PLACEHOLDER_NOTE]\n\
-          \    if not kws and not parts and not envs:\n        notes.append('缺少可检索线索，使用默认兜底片段。')\n\
-          \    snippets = fallback\n    status = 'failed'\n    query_preview = ' |\
-          \ '.join((kws + parts + envs)[:8])\n    return {\n        'product_knowledge_snippets':\
-          \ snippets,\n        'product_retrieval_status': status,\n        'product_retrieval_notes':\
-          \ notes,\n        'product_query_preview': query_preview\n    }\n"
+        code: |
+          MVP_PRODUCT_PLACEHOLDER_NOTE = '当前节点为占位实现，后续替换为 Knowledge Retrieval 节点。'
+
+          def main(
+              retrieval_keywords: list = None,
+              possible_parts: list = None,
+              possible_environment_factors: list = None
+          ) -> dict:
+              kws = retrieval_keywords or []
+              parts = possible_parts or []
+              envs = possible_environment_factors or []
+              notes = [MVP_PRODUCT_PLACEHOLDER_NOTE, 'MVP 阶段未接入产品知识库，返回空证据数组。']
+              if not kws and not parts and not envs:
+                  notes.append('缺少可检索线索，无法执行产品知识检索。')
+              query_preview = ' | '.join((kws + parts + envs)[:8])
+              return {
+                  'product_knowledge_snippets': [],
+                  'product_retrieval_status': 'no_knowledge_base',
+                  'product_retrieval_notes': notes,
+                  'product_query_preview': query_preview
+              }
         code_language: python3
         desc: 产品知识检索占位（无知识库）
         outputs:
@@ -598,51 +709,40 @@ workflow:
         prompt_template:
         - id: system-prompt
           role: system
-          text: '你是设备故障报告专业撰写人（精度优先）。
-
+          text: |-
+            你是设备故障报告专业撰写人（精度优先）。
             严格规则：
-
             - 仅可基于【事实摘要】与证据片段生成，不得新增任何未给定事实；
-
-            - 每条关键表述必须可被输入依据支持；无法支持时写“【证据不足】”，不得强行补全；
-
             - 历史案例仅作参考，不得当作本次已发生事实；
-
-            - 输出中严禁出现绝对化用语（如“确定”“必然”），除非输入事实明确给出；
-
-            - 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, evidence_citation。
-
-            '
+            - 若证据不足必须标注“【证据不足】”；
+            - 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, evidence_citation；
+            - evidence_citation 必须为数组，数组每项是对象，且仅含键：claim, source, quote。
         - id: user-prompt
           role: user
-          text: '【事实摘要】
-
+          text: |-
+            【事实摘要】
             {{#1000000000002.fact_summary#}}
 
+            【历史案例证据】
+            {{#1000000000003.history_cases_snippets#}}
 
-             【历史案例证据】
+            【产品知识证据】
+            {{#1000000000004.product_knowledge_snippets#}}
 
-             {{#1000000000003.history_cases_snippets#}}
+            【历史检索状态】
+            {{#1000000000003.history_retrieval_status#}}
 
+            【产品检索状态】
+            {{#1000000000004.product_retrieval_status#}}
 
-             【产品知识证据】
+            {% if history_cases_snippets | length == 0 %}
+            【警告】无历史案例数据，请仅基于事实摘要生成，不得假设历史结论。
+            {% endif %}
+            {% if product_knowledge_snippets | length == 0 %}
+            【警告】无产品知识数据，请仅基于事实摘要生成，不得补充原理性结论。
+            {% endif %}
 
-             {{#1000000000004.product_knowledge_snippets#}}
-
-
-             【历史检索状态】
-
-             {{#1000000000003.history_retrieval_status#}}
-
-
-             【产品检索状态】
-
-             {{#1000000000004.product_retrieval_status#}}
-
-
-             请输出 JSON。
-
-            '
+            请输出 JSON。
         selected: false
         structured_output_enabled: false
         title: generate_customer_letter_problem_desc
@@ -685,58 +785,39 @@ workflow:
         prompt_template:
         - id: system-prompt
           role: system
-          text: '你是设备故障分析工程师（精度优先）。
-
+          text: |-
+            你是设备故障分析工程师（精度优先）。
             严格规则：
-
             - 仅基于输入事实与证据输出 5Y，禁止臆造；
-
-            - 5Y 必须是“问题追问链”，question_index 仅允许 1~5 且递增；
-
-            - 每一层 analysis 仅写被证据支持的内容；证据不足时明确写“【证据不足】”；
-
-            - 不得把“历史案例中的结论”直接当作本案结论；
-
+            - question_index 必须为 1~5 且严格递增；
+            - 后一层不得引入与前文和事实摘要冲突的新假设；
+            - 证据不足时明确写“【证据不足】”；
             - 输出必须是合法 JSON，仅包含键：five_why_table, evidence_citation；
-
-            - five_why_table 为数组，每项含 question_index, question, analysis。
-
-            '
+            - five_why_table 为数组，每项含 question_index, question, analysis；
+            - evidence_citation 必须为数组，数组每项是对象，且仅含键：claim, source, quote。
         - id: user-prompt
           role: user
-          text: '【事实摘要】
-
+          text: |-
+            【事实摘要】
             {{#1000000000002.fact_summary#}}
 
-
             【故障摘要】
-
             {{#1000000000002.normalized_fault_summary#}}
 
+            【历史案例证据】
+            {{#1000000000003.history_cases_snippets#}}
 
-             【历史案例证据】
+            【产品知识证据】
+            {{#1000000000004.product_knowledge_snippets#}}
 
-             {{#1000000000003.history_cases_snippets#}}
+            {% if history_cases_snippets | length == 0 %}
+            【警告】无历史案例数据，请仅基于事实摘要生成，不得假设历史结论。
+            {% endif %}
+            {% if product_knowledge_snippets | length == 0 %}
+            【警告】无产品知识数据，请仅基于事实摘要生成，不得补充原理性结论。
+            {% endif %}
 
-
-             【产品知识证据】
-
-             {{#1000000000004.product_knowledge_snippets#}}
-
-
-             【历史检索状态】
-
-             {{#1000000000003.history_retrieval_status#}}
-
-
-             【产品检索状态】
-
-             {{#1000000000004.product_retrieval_status#}}
-
-
-             请输出 JSON。
-
-            '
+            请输出 JSON。
         selected: false
         structured_output_enabled: false
         title: generate_five_why
@@ -752,6 +833,91 @@ workflow:
       positionAbsolute:
         x: 1660.3718185161488
         y: -118.29626364200124
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          import json
+
+          def _parse(text):
+              try:
+                  if isinstance(text, dict):
+                      return text
+                  return json.loads(text)
+              except Exception:
+                  return {}
+
+          def main(n6_text: str = '') -> dict:
+              raw = _parse(n6_text)
+              table = raw.get('five_why_table', []) if isinstance(raw, dict) else []
+              warnings = []
+              sanitized = []
+              expected = 1
+              for item in table:
+                  if not isinstance(item, dict):
+                      warnings.append('five_why_table 存在非对象条目，已忽略。')
+                      continue
+                  idx = item.get('question_index')
+                  try:
+                      idx = int(idx)
+                  except Exception:
+                      idx = expected
+                      warnings.append('question_index 非数字，已按顺序重排。')
+                  if idx != expected:
+                      warnings.append(f'question_index 非递增（期望 {expected}，实际 {idx}），已重排。')
+                      idx = expected
+                  q = str(item.get('question', '')).strip() or '【证据不足】问题需人工补充。'
+                  a = str(item.get('analysis', '')).strip() or '【证据不足】分析需人工补充。'
+                  sanitized.append({'question_index': idx, 'question': q, 'analysis': a})
+                  expected += 1
+                  if expected > 5:
+                      break
+
+              while len(sanitized) < 5:
+                  i = len(sanitized) + 1
+                  sanitized.append({
+                      'question_index': i,
+                      'question': '【证据不足】问题需人工补充。',
+                      'analysis': '【证据不足】分析需人工补充。'
+                  })
+                  warnings.append('5Y 项不足 5 层，已补齐占位。')
+
+              out = {
+                  'five_why_table': sanitized,
+                  'evidence_citation': raw.get('evidence_citation', []) if isinstance(raw, dict) else []
+              }
+              return {
+                  'validated_five_why_text': json.dumps(out, ensure_ascii=False),
+                  'five_why_validation_warnings': warnings
+              }
+        code_language: python3
+        desc: 5Y 结构校验与重排
+        outputs:
+          validated_five_why_text:
+            children: null
+            type: string
+          five_why_validation_warnings:
+            children: null
+            type: array[string]
+        selected: false
+        title: validate_five_why
+        type: code
+        variables:
+        - value_selector:
+          - '1000000000006'
+          - text
+          variable: n6_text
+      height: 79
+      id: '1000000000012'
+      position:
+        x: 1790.0
+        y: -118.0
+      positionAbsolute:
+        x: 1790.0
+        y: -118.0
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -779,60 +945,43 @@ workflow:
         prompt_template:
         - id: system-prompt
           role: system
-          text: '你是故障归因审核助手（精度优先）。
-
+          text: |-
+            你是故障归因审核助手（精度优先）。
             严格规则：
-
             - 仅基于输入依据生成，不得新增事实；
-
-            - 上游“5Y结果”仅可作为候选假设，必须二次核验；若与事实冲突，以事实为准；
-
+            - 5Y 结果仅可作为候选假设，若与事实冲突，以事实为准；
             - 责任归属只允许“建议方向”，并包含“【待人工审核】”；
-
-            - 证据不足时必须降级表达，显式写“【证据不足】”；
-
+            - 证据不足时必须降级表达并写“【证据不足】”；
             - 输出必须是合法 JSON，仅包含键：root_cause_summary, responsibility_judgement, audit_metrics, evidence_citation；
-
             - audit_metrics 必含键：evidence_sufficiency, responsibility_confidence, risk_tips, hallucination_check；
-
-            - responsibility_confidence 必须是 0~100 整数；若存在冲突或证据不足，risk_tips 必须写明原因。
-
-            '
+            - responsibility_confidence 必须是 0~100 整数；
+            - evidence_citation 必须为数组，数组每项是对象，且仅含键：claim, source, quote。
         - id: user-prompt
           role: user
-          text: '【事实摘要】
-
+          text: |-
+            【事实摘要】
             {{#1000000000002.fact_summary#}}
 
+            【5Y结果（已校验）】
+            {{#1000000000012.validated_five_why_text#}}
 
-            【5Y结果】
+            【5Y校验提示】
+            {{#1000000000012.five_why_validation_warnings#}}
 
-            {{#1000000000006.text#}}
+            【历史案例证据】
+            {{#1000000000003.history_cases_snippets#}}
 
+            【产品知识证据】
+            {{#1000000000004.product_knowledge_snippets#}}
 
-             【历史案例证据】
+            {% if history_cases_snippets | length == 0 %}
+            【警告】无历史案例数据，请仅基于事实摘要生成，不得假设历史结论。
+            {% endif %}
+            {% if product_knowledge_snippets | length == 0 %}
+            【警告】无产品知识数据，请仅基于事实摘要生成，不得补充原理性结论。
+            {% endif %}
 
-             {{#1000000000003.history_cases_snippets#}}
-
-
-             【产品知识证据】
-
-             {{#1000000000004.product_knowledge_snippets#}}
-
-
-             【历史检索状态】
-
-             {{#1000000000003.history_retrieval_status#}}
-
-
-             【产品检索状态】
-
-             {{#1000000000004.product_retrieval_status#}}
-
-
-             请输出 JSON。
-
-            '
+            请输出 JSON。
         selected: false
         structured_output_enabled: false
         title: generate_root_cause_and_responsibility
@@ -875,56 +1024,39 @@ workflow:
         prompt_template:
         - id: system-prompt
           role: system
-          text: '你是售后技术方案工程师（精度优先）。
-
+          text: |-
+            你是售后技术方案工程师（精度优先）。
             严格规则：
-
             - 仅基于输入依据生成，不得新增未提供事实；
-
-            - 上游“根因与责任建议”仅作候选输入，不得无条件继承，需与事实/证据二次对齐；
-
-            - 方案必须可执行且与本案事实一致；若无法证明可执行性，写“【证据不足】”；
-
-            - 严禁输出与已知事实冲突的措施；若存在冲突风险，在对应条目显式标注“【存在冲突待核】”；
-
-            - 输出必须是合法 JSON，仅包含键：temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation。
-
-            '
+            - 上游“根因与责任建议”仅作候选输入，需与事实/证据二次对齐；
+            - 方案必须可执行且与本案事实一致；
+            - 无法证明可执行性时写“【证据不足】”；
+            - 存在冲突风险时显式标注“【存在冲突待核】”；
+            - 输出必须是合法 JSON，仅包含键：temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation；
+            - evidence_citation 必须为数组，数组每项是对象，且仅含键：claim, source, quote。
         - id: user-prompt
           role: user
-          text: '【事实摘要】
-
+          text: |-
+            【事实摘要】
             {{#1000000000002.fact_summary#}}
 
-
             【根因与责任建议】
-
             {{#1000000000007.text#}}
 
+            【历史案例证据】
+            {{#1000000000003.history_cases_snippets#}}
 
-             【历史案例证据】
+            【产品知识证据】
+            {{#1000000000004.product_knowledge_snippets#}}
 
-             {{#1000000000003.history_cases_snippets#}}
+            {% if history_cases_snippets | length == 0 %}
+            【警告】无历史案例数据，请仅基于事实摘要生成，不得假设历史结论。
+            {% endif %}
+            {% if product_knowledge_snippets | length == 0 %}
+            【警告】无产品知识数据，请仅基于事实摘要生成，不得补充原理性结论。
+            {% endif %}
 
-
-             【产品知识证据】
-
-             {{#1000000000004.product_knowledge_snippets#}}
-
-
-             【历史检索状态】
-
-             {{#1000000000003.history_retrieval_status#}}
-
-
-             【产品检索状态】
-
-             {{#1000000000004.product_retrieval_status#}}
-
-
-             请输出 JSON。
-
-            '
+            请输出 JSON。
         selected: false
         structured_output_enabled: false
         title: generate_solution
@@ -940,6 +1072,115 @@ workflow:
       positionAbsolute:
         x: 2186.3364492129904
         y: -118.29626364200124
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          import json
+
+          def _parse(text):
+              try:
+                  if isinstance(text, dict):
+                      return text
+                  return json.loads(text)
+              except Exception:
+                  return {}
+
+          def _contains_risk(v):
+              s = str(v)
+              return ('【证据不足】' in s) or ('【存在冲突待核】' in s)
+
+          def main(
+              fact_summary: str = '',
+              n5_text: str = '',
+              n6_validated_text: str = '',
+              n7_text: str = '',
+              n8_text: str = ''
+          ) -> dict:
+              n5 = _parse(n5_text)
+              n6 = _parse(n6_validated_text)
+              n7 = _parse(n7_text)
+              n8 = _parse(n8_text)
+
+              warnings = []
+              if not str(fact_summary).strip():
+                  warnings.append('事实摘要为空，无法执行有效一致性校验。')
+
+              for key in ['root_cause_summary', 'responsibility_judgement']:
+                  if _contains_risk(n7.get(key, '')):
+                      warnings.append(f'{key} 含证据不足/冲突标记，润色阶段禁止改写为确定性结论。')
+
+              for key in ['temporary_measures', 'corrective_actions', 'preventive_actions', 'customer_side_actions', 'internal_quality_actions']:
+                  if _contains_risk(n8.get(key, '')):
+                      warnings.append(f'{key} 含证据不足/冲突标记，需在最终稿中保留。')
+
+              checked = {
+                  'customer_letter': n5.get('customer_letter', '【证据不足】需人工补充。'),
+                  'problem_description_refined': n5.get('problem_description_refined', '【证据不足】需人工补充。'),
+                  'five_why_table': n6.get('five_why_table', []),
+                  'root_cause_summary': n7.get('root_cause_summary', '【证据不足】需人工审核。'),
+                  'responsibility_judgement': n7.get('responsibility_judgement', '【证据不足】【待人工审核】仅建议责任方向。'),
+                  'temporary_measures': n8.get('temporary_measures', '【证据不足】需人工补充。'),
+                  'corrective_actions': n8.get('corrective_actions', '【证据不足】需人工补充。'),
+                  'preventive_actions': n8.get('preventive_actions', '【证据不足】需人工补充。'),
+                  'customer_side_actions': n8.get('customer_side_actions', '【证据不足】需人工补充。'),
+                  'internal_quality_actions': n8.get('internal_quality_actions', '【证据不足】需人工补充。'),
+                  'evidence_citation': (
+                      (n5.get('evidence_citation', []) if isinstance(n5, dict) else []) +
+                      (n6.get('evidence_citation', []) if isinstance(n6, dict) else []) +
+                      (n7.get('evidence_citation', []) if isinstance(n7, dict) else []) +
+                      (n8.get('evidence_citation', []) if isinstance(n8, dict) else [])
+                  )
+              }
+
+              return {
+                  'checked_sections_text': json.dumps(checked, ensure_ascii=False),
+                  'consistency_warnings': warnings
+              }
+        code_language: python3
+        desc: n8->n9 事实一致性校验
+        outputs:
+          checked_sections_text:
+            children: null
+            type: string
+          consistency_warnings:
+            children: null
+            type: array[string]
+        selected: false
+        title: check_fact_consistency_before_polish
+        type: code
+        variables:
+        - value_selector:
+          - '1000000000002'
+          - fact_summary
+          variable: fact_summary
+        - value_selector:
+          - '1000000000005'
+          - text
+          variable: n5_text
+        - value_selector:
+          - '1000000000012'
+          - validated_five_why_text
+          variable: n6_validated_text
+        - value_selector:
+          - '1000000000007'
+          - text
+          variable: n7_text
+        - value_selector:
+          - '1000000000008'
+          - text
+          variable: n8_text
+      height: 79
+      id: '1000000000013'
+      position:
+        x: 2318.0
+        y: -118.0
+      positionAbsolute:
+        x: 2318.0
+        y: -118.0
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -967,44 +1208,28 @@ workflow:
         prompt_template:
         - id: system-prompt
           role: system
-          text: '你是报告润色助手（精度优先）。只做表达规范化，不得新增、删改事实结论。
-
+          text: |-
+            你是报告润色助手（精度优先）。只做表达规范化，不得新增、删改事实结论。
             严格规则：
-
-            - 仅修正文风与结构，不得补充任何新事实；
-
+            - 事实摘要优先级最高；
+            - 仅修正文风与结构，不得补充新事实；
             - 不得把“证据不足”改写成确定性结论；
-
-            - 若上游字段间存在明显冲突，保留冲突并显式写“【存在冲突待核】”，不得自行裁决；
-
-            - 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, five_why_table, root_cause_summary, responsibility_judgement, temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation。
-
-            '
+            - 若存在冲突，保留并显式写“【存在冲突待核】”；
+            - 输出必须是合法 JSON，仅包含键：customer_letter, problem_description_refined, five_why_table, root_cause_summary, responsibility_judgement, temporary_measures, corrective_actions, preventive_actions, customer_side_actions, internal_quality_actions, evidence_citation；
+            - evidence_citation 必须为数组，数组每项是对象，且仅含键：claim, source, quote。
         - id: user-prompt
           role: user
-          text: '【节点输出-客户说明与问题描述】
+          text: |-
+            【事实摘要】
+            {{#1000000000002.fact_summary#}}
 
-            {{#1000000000005.text#}}
+            【章节一致性校验输出】
+            {{#1000000000013.checked_sections_text#}}
 
-
-            【节点输出-5Y】
-
-            {{#1000000000006.text#}}
-
-
-            【节点输出-根因与责任】
-
-            {{#1000000000007.text#}}
-
-
-            【节点输出-解决方案】
-
-            {{#1000000000008.text#}}
-
+            【一致性风险提示】
+            {{#1000000000013.consistency_warnings#}}
 
             请整合并润色后输出 JSON。
-
-            '
         selected: false
         structured_output_enabled: false
         title: polish_report_sections
@@ -1026,90 +1251,193 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import json\n\nDEFAULT_CONFIDENCE = 60\n\ndef _parse_json(text, fallback):\n\
-          \    try:\n        if isinstance(text, dict):\n            return text\n\
-          \        parsed = json.loads(text)\n        return parsed if isinstance(parsed,\
-          \ dict) else fallback\n    except (json.JSONDecodeError, TypeError):\n \
-          \       return fallback\n\ndef _ensure_list(v):\n    if isinstance(v, list):\n\
-          \        return v\n    if v is None:\n        return []\n    return [str(v)]\n\
-          \ndef _normalize_confidence(v):\n    corrected = False\n    score = DEFAULT_CONFIDENCE\n\
-          \    try:\n        if isinstance(v, str):\n            score = round(float(v.strip()))\n\
-          \        else:\n            score = round(float(v))\n    except (ValueError,\
-          \ TypeError):\n        score = DEFAULT_CONFIDENCE\n        corrected = True\n\
-          \    bounded = max(0, min(100, score))\n    if bounded != score:\n     \
-          \   corrected = True\n    return bounded, corrected\n\ndef main(\n    report_id:\
-          \ str,\n    customer_name: str,\n    site_name: str,\n    device_model:\
-          \ str,\n    device_sn: str,\n    fault_time: str,\n    fault_count: int,\n\
-          \    fault_description: str,\n    missing_required_fields: list,\n    history_cases_snippets:\
-          \ list,\n    product_knowledge_snippets: list,\n    history_retrieval_status:\
-          \ str,\n    product_retrieval_status: str,\n    history_retrieval_notes:\
-          \ list,\n    product_retrieval_notes: list,\n    n5_text: str,\n    n6_text:\
-          \ str,\n    n7_text: str,\n    n8_text: str,\n    n9_text: str\n) -> dict:\n\
-          \    n5 = _parse_json(n5_text, {\n        'customer_letter': '【证据不足】需人工补充。',\n\
-          \        'problem_description_refined': fault_description,\n        'evidence_citation':\
-          \ ['用户输入事实']\n    })\n    n6 = _parse_json(n6_text, {\n        'five_why_table':\
-          \ [],\n        'evidence_citation': ['用户输入事实']\n    })\n    n7 = _parse_json(n7_text,\
-          \ {\n        'root_cause_summary': '【证据不足】需人工审核。',\n        'responsibility_judgement':\
-          \ '【证据不足】【待人工审核】仅建议责任方向。',\n        'audit_metrics': {\n            'evidence_sufficiency':\
-          \ '低',\n            'responsibility_confidence': DEFAULT_CONFIDENCE,\n \
-          \           'risk_tips': ['根因与责任节点输出解析失败，已使用兜底。'],\n            'hallucination_check':\
-          \ '疑似'\n        },\n        'evidence_citation': ['用户输入事实']\n    })\n  \
-          \  n8 = _parse_json(n8_text, {\n        'temporary_measures': '【证据不足】需人工补充。',\n\
-          \        'corrective_actions': '【证据不足】需人工补充。',\n        'preventive_actions':\
-          \ '【证据不足】需人工补充。',\n        'customer_side_actions': '【证据不足】需人工补充。',\n  \
-          \      'internal_quality_actions': '【证据不足】需人工补充。',\n        'evidence_citation':\
-          \ ['用户输入事实']\n    })\n    n9 = _parse_json(n9_text, {})\n\n    audit_metrics_raw\
-          \ = n7.get('audit_metrics', {}) if isinstance(n7, dict) else {}\n    audit_metrics\
-          \ = audit_metrics_raw if isinstance(audit_metrics_raw, dict) else {}\n \
-          \   audit_metrics.setdefault('evidence_sufficiency', '中')\n    audit_metrics.setdefault('responsibility_confidence',\
-          \ DEFAULT_CONFIDENCE)\n    audit_metrics.setdefault('risk_tips', [])\n \
-          \   audit_metrics.setdefault('hallucination_check', '无')\n    audit_metrics['risk_tips']\
-          \ = _ensure_list(audit_metrics.get('risk_tips', []))\n\n    normalized_score,\
-          \ corrected = _normalize_confidence(audit_metrics.get('responsibility_confidence'))\n\
-          \    audit_metrics['responsibility_confidence'] = normalized_score\n   \
-          \ if corrected:\n        audit_metrics['risk_tips'].append(\n          \
-          \  'responsibility_confidence 非法或越界，已自动校正到 0~100 整数范围。'\n        )\n\n \
-          \   if history_retrieval_status == 'failed' or product_retrieval_status\
-          \ == 'failed':\n        audit_metrics['risk_tips'].append('检索证据不足：当前链路未接入知识库，仅基于输入事实。')\n\
-          \n    if missing_required_fields:\n        audit_metrics['risk_tips'].append('核心字段缺失：'\
-          \ + ', '.join(missing_required_fields))\n\n    sections = {\n        'customer_letter':\
-          \ n9.get('customer_letter', n5.get('customer_letter', '【证据不足】需人工补充。')),\n\
-          \        'problem_description_refined': n9.get('problem_description_refined',\
-          \ n5.get('problem_description_refined', fault_description)),\n        'five_why_table':\
-          \ n9.get('five_why_table', n6.get('five_why_table', [])),\n        'root_cause_summary':\
-          \ n9.get('root_cause_summary', n7.get('root_cause_summary', '【证据不足】需人工审核。')),\n\
-          \        'responsibility_judgement': n9.get('responsibility_judgement',\
-          \ n7.get('responsibility_judgement', '【证据不足】【待人工审核】仅建议责任方向。')),\n      \
-          \  'temporary_measures': n9.get('temporary_measures', n8.get('temporary_measures',\
-          \ '【证据不足】需人工补充。')),\n        'corrective_actions': n9.get('corrective_actions',\
-          \ n8.get('corrective_actions', '【证据不足】需人工补充。')),\n        'preventive_actions':\
-          \ n9.get('preventive_actions', n8.get('preventive_actions', '【证据不足】需人工补充。')),\n\
-          \        'customer_side_actions': n9.get('customer_side_actions', n8.get('customer_side_actions',\
-          \ '【证据不足】需人工补充。')),\n        'internal_quality_actions': n9.get('internal_quality_actions',\
-          \ n8.get('internal_quality_actions', '【证据不足】需人工补充。'))\n    }\n\n    evidence_citation\
-          \ = []\n    evidence_citation.extend(_ensure_list(n5.get('evidence_citation',\
-          \ [])))\n    evidence_citation.extend(_ensure_list(n6.get('evidence_citation',\
-          \ [])))\n    evidence_citation.extend(_ensure_list(n7.get('evidence_citation',\
-          \ [])))\n    evidence_citation.extend(_ensure_list(n8.get('evidence_citation',\
-          \ [])))\n    evidence_citation.extend(_ensure_list(n9.get('evidence_citation',\
-          \ [])))\n    if not evidence_citation:\n        evidence_citation = ['用户输入事实']\n\
-          \n    final_json = {\n        'report_id': report_id,\n        'basic_info':\
-          \ {\n            'customer_name': customer_name,\n            'site_name':\
-          \ site_name,\n            'device_model': device_model,\n            'device_sn':\
-          \ device_sn,\n            'fault_time': fault_time,\n            'fault_count':\
-          \ fault_count,\n            'fault_description': fault_description\n   \
-          \     },\n        'sections': sections,\n        'evidence_citation': evidence_citation,\n\
-          \        'audit_metrics': audit_metrics,\n        'ext_info': {\n      \
-          \      'missing_required_fields': missing_required_fields,\n           \
-          \ 'history_retrieval_status': history_retrieval_status,\n            'product_retrieval_status':\
-          \ product_retrieval_status,\n            'history_retrieval_notes': history_retrieval_notes,\n\
-          \            'product_retrieval_notes': product_retrieval_notes,\n     \
-          \       'history_cases_snippets': history_cases_snippets,\n            'product_knowledge_snippets':\
-          \ product_knowledge_snippets\n        }\n    }\n\n    return {\n       \
-          \ 'final_json': json.dumps(final_json, ensure_ascii=False, indent=2)\n \
-          \   }\n"
+        code: |
+          import json
+
+          DEFAULT_CONFIDENCE = 60
+          LOW_EVIDENCE_MAX_CONFIDENCE = 40
+
+          def _parse_json(text, fallback):
+              try:
+                  if isinstance(text, dict):
+                      return text
+                  parsed = json.loads(text)
+                  return parsed if isinstance(parsed, dict) else fallback
+              except (json.JSONDecodeError, TypeError):
+                  return fallback
+
+          def _ensure_list(v):
+              if isinstance(v, list):
+                  return v
+              if v is None:
+                  return []
+              return [v]
+
+          def _normalize_confidence(v):
+              corrected = False
+              score = DEFAULT_CONFIDENCE
+              try:
+                  if isinstance(v, str):
+                      score = round(float(v.strip()))
+                  else:
+                      score = round(float(v))
+              except (ValueError, TypeError):
+                  score = DEFAULT_CONFIDENCE
+                  corrected = True
+              bounded = max(0, min(100, score))
+              if bounded != score:
+                  corrected = True
+              return bounded, corrected
+
+          def _normalize_citations(values):
+              out = []
+              for item in _ensure_list(values):
+                  if isinstance(item, dict):
+                      claim = str(item.get('claim', '')).strip() or '未命名结论'
+                      source = str(item.get('source', '')).strip() or 'unknown'
+                      quote = str(item.get('quote', '')).strip() or '未提供引用片段'
+                      out.append({'claim': claim, 'source': source, 'quote': quote})
+                  else:
+                      s = str(item).strip()
+                      if s:
+                          out.append({'claim': s, 'source': 'unknown', 'quote': s})
+              return out
+
+          def main(
+              report_id: str,
+              customer_name: str,
+              site_name: str,
+              device_model: str,
+              device_sn: str,
+              fault_time: str,
+              fault_count: int,
+              fault_description: str,
+              missing_required_fields: list,
+              history_cases_snippets: list,
+              product_knowledge_snippets: list,
+              history_retrieval_status: str,
+              product_retrieval_status: str,
+              history_retrieval_notes: list,
+              product_retrieval_notes: list,
+              n5_text: str,
+              n6_text: str,
+              n6_validated_text: str,
+              n7_text: str,
+              n8_text: str,
+              n9_text: str,
+              consistency_warnings: list
+          ) -> dict:
+              citation_fallback = [{'claim': '用户输入事实', 'source': 'fact_summary', 'quote': '用户输入事实'}]
+
+              n5 = _parse_json(n5_text, {
+                  'customer_letter': '【证据不足】需人工补充。',
+                  'problem_description_refined': fault_description,
+                  'evidence_citation': citation_fallback
+              })
+              n6 = _parse_json(n6_validated_text or n6_text, {
+                  'five_why_table': [],
+                  'evidence_citation': citation_fallback
+              })
+              n7 = _parse_json(n7_text, {
+                  'root_cause_summary': '【证据不足】需人工审核。',
+                  'responsibility_judgement': '【证据不足】【待人工审核】仅建议责任方向。',
+                  'audit_metrics': {
+                      'evidence_sufficiency': '低',
+                      'responsibility_confidence': DEFAULT_CONFIDENCE,
+                      'risk_tips': ['根因与责任节点输出解析失败，已使用兜底。'],
+                      'hallucination_check': '疑似'
+                  },
+                  'evidence_citation': citation_fallback
+              })
+              n8 = _parse_json(n8_text, {
+                  'temporary_measures': '【证据不足】需人工补充。',
+                  'corrective_actions': '【证据不足】需人工补充。',
+                  'preventive_actions': '【证据不足】需人工补充。',
+                  'customer_side_actions': '【证据不足】需人工补充。',
+                  'internal_quality_actions': '【证据不足】需人工补充。',
+                  'evidence_citation': citation_fallback
+              })
+              n9 = _parse_json(n9_text, {})
+
+              audit_metrics_raw = n7.get('audit_metrics', {}) if isinstance(n7, dict) else {}
+              audit_metrics = audit_metrics_raw if isinstance(audit_metrics_raw, dict) else {}
+              audit_metrics.setdefault('evidence_sufficiency', '中')
+              audit_metrics.setdefault('responsibility_confidence', DEFAULT_CONFIDENCE)
+              audit_metrics.setdefault('risk_tips', [])
+              audit_metrics.setdefault('hallucination_check', '无')
+              audit_metrics['risk_tips'] = [str(x) for x in _ensure_list(audit_metrics.get('risk_tips', []))]
+
+              normalized_score, corrected = _normalize_confidence(audit_metrics.get('responsibility_confidence'))
+              if str(audit_metrics.get('evidence_sufficiency')) == '低' and normalized_score > LOW_EVIDENCE_MAX_CONFIDENCE:
+                  normalized_score = LOW_EVIDENCE_MAX_CONFIDENCE
+                  audit_metrics['risk_tips'].append('evidence_sufficiency=低，responsibility_confidence 已按上限 40 限制。')
+              audit_metrics['responsibility_confidence'] = normalized_score
+              if corrected:
+                  audit_metrics['risk_tips'].append('responsibility_confidence 非法或越界，已自动校正到 0~100 整数范围。')
+
+              if history_retrieval_status in ('failed', 'no_knowledge_base') or product_retrieval_status in ('failed', 'no_knowledge_base'):
+                  audit_metrics['risk_tips'].append('检索证据不足：当前链路未接入知识库，仅基于输入事实。')
+
+              if missing_required_fields:
+                  audit_metrics['risk_tips'].append('核心字段缺失：' + ', '.join(missing_required_fields))
+
+              for tip in _ensure_list(consistency_warnings):
+                  if str(tip).strip():
+                      audit_metrics['risk_tips'].append(str(tip).strip())
+
+              sections = {
+                  'customer_letter': n9.get('customer_letter', n5.get('customer_letter', '【证据不足】需人工补充。')),
+                  'problem_description_refined': n9.get('problem_description_refined', n5.get('problem_description_refined', fault_description)),
+                  'five_why_table': n9.get('five_why_table', n6.get('five_why_table', [])),
+                  'root_cause_summary': n9.get('root_cause_summary', n7.get('root_cause_summary', '【证据不足】需人工审核。')),
+                  'responsibility_judgement': n9.get('responsibility_judgement', n7.get('responsibility_judgement', '【证据不足】【待人工审核】仅建议责任方向。')),
+                  'temporary_measures': n9.get('temporary_measures', n8.get('temporary_measures', '【证据不足】需人工补充。')),
+                  'corrective_actions': n9.get('corrective_actions', n8.get('corrective_actions', '【证据不足】需人工补充。')),
+                  'preventive_actions': n9.get('preventive_actions', n8.get('preventive_actions', '【证据不足】需人工补充。')),
+                  'customer_side_actions': n9.get('customer_side_actions', n8.get('customer_side_actions', '【证据不足】需人工补充。')),
+                  'internal_quality_actions': n9.get('internal_quality_actions', n8.get('internal_quality_actions', '【证据不足】需人工补充。'))
+              }
+
+              evidence_citation = []
+              evidence_citation.extend(_normalize_citations(n5.get('evidence_citation', [])))
+              evidence_citation.extend(_normalize_citations(n6.get('evidence_citation', [])))
+              evidence_citation.extend(_normalize_citations(n7.get('evidence_citation', [])))
+              evidence_citation.extend(_normalize_citations(n8.get('evidence_citation', [])))
+              evidence_citation.extend(_normalize_citations(n9.get('evidence_citation', [])))
+              if not evidence_citation:
+                  evidence_citation = citation_fallback
+
+              final_json = {
+                  'report_id': report_id,
+                  'basic_info': {
+                      'customer_name': customer_name,
+                      'site_name': site_name,
+                      'device_model': device_model,
+                      'device_sn': device_sn,
+                      'fault_time': fault_time,
+                      'fault_count': fault_count,
+                      'fault_description': fault_description
+                  },
+                  'sections': sections,
+                  'evidence_citation': evidence_citation,
+                  'audit_metrics': audit_metrics,
+                  'ext_info': {
+                      'missing_required_fields': missing_required_fields,
+                      'history_retrieval_status': history_retrieval_status,
+                      'product_retrieval_status': product_retrieval_status,
+                      'history_retrieval_notes': history_retrieval_notes,
+                      'product_retrieval_notes': product_retrieval_notes,
+                      'history_cases_snippets': history_cases_snippets,
+                      'product_knowledge_snippets': product_knowledge_snippets,
+                      'consistency_warnings': _ensure_list(consistency_warnings)
+                  }
+              }
+
+              return {
+                  'final_json': json.dumps(final_json, ensure_ascii=False, indent=2)
+              }
         code_language: python3
-        desc: 汇总最终 JSON（10节点输出）
+        desc: 汇总最终 JSON（12节点输出）
         outputs:
           final_json:
             children: null
@@ -1187,6 +1515,10 @@ workflow:
           - text
           variable: n6_text
         - value_selector:
+          - '1000000000012'
+          - validated_five_why_text
+          variable: n6_validated_text
+        - value_selector:
           - '1000000000007'
           - text
           variable: n7_text
@@ -1198,6 +1530,10 @@ workflow:
           - '1000000000009'
           - text
           variable: n9_text
+        - value_selector:
+          - '1000000000013'
+          - consistency_warnings
+          variable: consistency_warnings
       height: 79
       id: '1000000000010'
       position:
