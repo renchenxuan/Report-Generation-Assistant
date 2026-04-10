@@ -1256,6 +1256,10 @@ workflow:
 
           DEFAULT_CONFIDENCE = 60
           LOW_EVIDENCE_MAX_CONFIDENCE = 40
+          CITATION_DEFAULT_CLAIM = '未命名结论'
+          CITATION_DEFAULT_SOURCE = '未知来源'
+          CITATION_DEFAULT_QUOTE = '未提供引用片段'
+          CITATION_FALLBACK = [{'claim': '用户输入事实', 'source': 'fact_summary', 'quote': '用户输入事实'}]
 
           def _parse_json(text, fallback):
               try:
@@ -1293,14 +1297,14 @@ workflow:
               out = []
               for item in _ensure_list(values):
                   if isinstance(item, dict):
-                      claim = str(item.get('claim', '')).strip() or '未命名结论'
-                      source = str(item.get('source', '')).strip() or '未知来源'
-                      quote = str(item.get('quote', '')).strip() or '未提供引用片段'
+                      claim = str(item.get('claim', '')).strip() or CITATION_DEFAULT_CLAIM
+                      source = str(item.get('source', '')).strip() or CITATION_DEFAULT_SOURCE
+                      quote = str(item.get('quote', '')).strip() or CITATION_DEFAULT_QUOTE
                       out.append({'claim': claim, 'source': source, 'quote': quote})
                   else:
                       s = str(item).strip()
                       if s:
-                          out.append({'claim': s, 'source': '未知来源', 'quote': s})
+                          out.append({'claim': s, 'source': CITATION_DEFAULT_SOURCE, 'quote': s})
               return out
 
           def main(
@@ -1327,7 +1331,7 @@ workflow:
               n9_text: str,
               consistency_warnings: list
           ) -> dict:
-              citation_fallback = [{'claim': '用户输入事实', 'source': 'fact_summary', 'quote': '用户输入事实'}]
+              citation_fallback = CITATION_FALLBACK
 
               n5 = _parse_json(n5_text, {
                   'customer_letter': '【证据不足】需人工补充。',
