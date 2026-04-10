@@ -700,31 +700,31 @@ workflow:
           - fault_count
           variable: fault_count
         - value_selector:
-          - '1000000000002'
+          - '1000000000001'
           - event_record_text
           variable: event_record_text
         - value_selector:
-          - '1000000000002'
+          - '1000000000001'
           - waveform_analysis_text
           variable: waveform_analysis_text
         - value_selector:
-          - '1000000000002'
+          - '1000000000001'
           - overall_appearance_text
           variable: overall_appearance_text
         - value_selector:
-          - '1000000000002'
+          - '1000000000001'
           - upper_board_text
           variable: upper_board_text
         - value_selector:
-          - '1000000000002'
+          - '1000000000001'
           - lower_board_text
           variable: lower_board_text
         - value_selector:
-          - '1000000000002'
+          - '1000000000001'
           - power_device_measure_text
           variable: power_device_measure_text
         - value_selector:
-          - '1000000000002'
+          - '1000000000001'
           - site_research_text
           variable: site_research_text
         - value_selector:
