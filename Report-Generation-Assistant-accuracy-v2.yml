@@ -1294,13 +1294,13 @@ workflow:
               for item in _ensure_list(values):
                   if isinstance(item, dict):
                       claim = str(item.get('claim', '')).strip() or '未命名结论'
-                      source = str(item.get('source', '')).strip() or 'unknown'
+                      source = str(item.get('source', '')).strip() or '未知来源'
                       quote = str(item.get('quote', '')).strip() or '未提供引用片段'
                       out.append({'claim': claim, 'source': source, 'quote': quote})
                   else:
                       s = str(item).strip()
                       if s:
-                          out.append({'claim': s, 'source': 'unknown', 'quote': s})
+                          out.append({'claim': s, 'source': '未知来源', 'quote': s})
               return out
 
           def main(
@@ -1370,7 +1370,7 @@ workflow:
               normalized_score, corrected = _normalize_confidence(audit_metrics.get('responsibility_confidence'))
               if str(audit_metrics.get('evidence_sufficiency')) == '低' and normalized_score > LOW_EVIDENCE_MAX_CONFIDENCE:
                   normalized_score = LOW_EVIDENCE_MAX_CONFIDENCE
-                  audit_metrics['risk_tips'].append('evidence_sufficiency=低，responsibility_confidence 已按上限 40 限制。')
+                  audit_metrics['risk_tips'].append(f'evidence_sufficiency=低，responsibility_confidence 已按上限 {LOW_EVIDENCE_MAX_CONFIDENCE} 限制。')
               audit_metrics['responsibility_confidence'] = normalized_score
               if corrected:
                   audit_metrics['risk_tips'].append('responsibility_confidence 非法或越界，已自动校正到 0~100 整数范围。')
