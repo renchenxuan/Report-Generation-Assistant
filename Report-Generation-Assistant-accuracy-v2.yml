@@ -78,8 +78,19 @@ workflow:
         isInIteration: false
         sourceType: code
         targetType: code
-      id: 1000000000002-source-1000000000003-target
+      id: 1000000000002-source-1000000000014-target
       source: '1000000000002'
+      sourceHandle: source
+      target: '1000000000014'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: code
+      id: 1000000000014-source-1000000000003-target
+      source: '1000000000014'
       sourceHandle: source
       target: '1000000000003'
       targetHandle: target
@@ -553,6 +564,190 @@ workflow:
         x: 615.9524610668686
         y: -95.55319640308284
       selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          def main(
+              missing_required_fields: list = None,
+              fault_description: str = '',
+              fault_count: int = 1,
+              event_record_text: str = '',
+              waveform_analysis_text: str = '',
+              overall_appearance_text: str = '',
+              upper_board_text: str = '',
+              lower_board_text: str = '',
+              power_device_measure_text: str = '',
+              site_research_text: str = '',
+              device_model: str = '',
+              fault_time: str = '',
+              device_sn: str = ''
+          ) -> dict:
+              quality_score = 100
+              quality_issues = []
+
+              missing = missing_required_fields or []
+              if missing:
+                  quality_score -= len(missing) * 15
+                  quality_issues.append('核心必填字段缺失: ' + ', '.join(missing))
+
+              fault_desc_len = len(fault_description.strip()) if fault_description else 0
+              if fault_desc_len < 20:
+                  quality_score -= 25
+                  quality_issues.append(f'故障描述过于简略（{fault_desc_len}字，建议≥20字）')
+              elif fault_desc_len < 50:
+                  quality_score -= 10
+                  quality_issues.append(f'故障描述较短（{fault_desc_len}字），建议补充更多细节')
+
+              if fault_count > 10:
+                  quality_issues.append(f'故障数量异常（{fault_count}），请确认是否准确')
+
+              analysis_fields = {
+                  'event_record_text': '事件记录分析',
+                  'waveform_analysis_text': '波形分析',
+                  'overall_appearance_text': '整体外观分析',
+                  'upper_board_text': '开盖上层板分析',
+                  'lower_board_text': '开盖下层板分析',
+                  'power_device_measure_text': '功率器件测量分析',
+                  'site_research_text': '现场调研分析'
+              }
+
+              provided_analysis = []
+              missing_analysis = []
+              for field, label in analysis_fields.items():
+                  value = locals().get(field, '')
+                  if value and len(value.strip()) > 10:
+                      provided_analysis.append(label)
+                  else:
+                      missing_analysis.append(label)
+
+              if len(provided_analysis) == 0:
+                  quality_score -= 20
+                  quality_issues.append('缺少所有分析数据（事件记录、波形分析、外观分析等），报告质量将严重受限')
+              elif len(provided_analysis) <= 2:
+                  quality_score -= 10
+                  quality_issues.append('分析数据较少（仅' + str(len(provided_analysis)) + '项），建议补充: ' + ', '.join(missing_analysis[:3]))
+
+              if not device_sn or not device_sn.strip():
+                  quality_issues.append('设备条码为空，可能影响产品知识检索准确性')
+
+              if fault_time and len(fault_time.strip()) < 8:
+                  quality_issues.append(f'故障时间格式可能不规范（{fault_time}），建议使用YYYY-MM-DD格式')
+
+              quality_score = max(0, quality_score)
+              if quality_score >= 80:
+                  quality_level = 'high'
+                  recommendation = '输入质量良好，可继续执行工作流'
+              elif quality_score >= 60:
+                  quality_level = 'medium'
+                  recommendation = '输入质量一般，建议补充部分信息以提高报告准确性'
+              elif quality_score >= 40:
+                  quality_level = 'low'
+                  recommendation = '输入质量较差，强烈建议人工审核并补充关键信息'
+              else:
+                  quality_level = 'critical'
+                  recommendation = '输入质量极差，建议拒绝自动生成并返回人工填写'
+
+              return {
+                  'quality_score': quality_score,
+                  'quality_level': quality_level,
+                  'quality_issues': quality_issues,
+                  'provided_analysis_count': len(provided_analysis),
+                  'missing_analysis_fields': missing_analysis,
+                  'recommendation': recommendation,
+                  'should_proceed': quality_score >= 40
+              }
+        code_language: python3
+        desc: 输入质量检查：验证必填字段、描述详细度、分析数据完整性
+        outputs:
+          missing_analysis_fields:
+            children: null
+            type: array[string]
+          provided_analysis_count:
+            children: null
+            type: number
+          quality_issues:
+            children: null
+            type: array[string]
+          quality_level:
+            children: null
+            type: string
+          quality_score:
+            children: null
+            type: number
+          recommendation:
+            children: null
+            type: string
+          should_proceed:
+            children: null
+            type: boolean
+        selected: false
+        title: validate_input_quality
+        type: code
+        variables:
+        - value_selector:
+          - '1000000000002'
+          - missing_required_fields
+          variable: missing_required_fields
+        - value_selector:
+          - '1000000000002'
+          - fault_description
+          variable: fault_description
+        - value_selector:
+          - '1000000000002'
+          - fault_count
+          variable: fault_count
+        - value_selector:
+          - '1000000000002'
+          - event_record_text
+          variable: event_record_text
+        - value_selector:
+          - '1000000000002'
+          - waveform_analysis_text
+          variable: waveform_analysis_text
+        - value_selector:
+          - '1000000000002'
+          - overall_appearance_text
+          variable: overall_appearance_text
+        - value_selector:
+          - '1000000000002'
+          - upper_board_text
+          variable: upper_board_text
+        - value_selector:
+          - '1000000000002'
+          - lower_board_text
+          variable: lower_board_text
+        - value_selector:
+          - '1000000000002'
+          - power_device_measure_text
+          variable: power_device_measure_text
+        - value_selector:
+          - '1000000000002'
+          - site_research_text
+          variable: site_research_text
+        - value_selector:
+          - '1000000000002'
+          - device_model
+          variable: device_model
+        - value_selector:
+          - '1000000000002'
+          - fault_time
+          variable: fault_time
+        - value_selector:
+          - '1000000000002'
+          - device_sn
+          variable: device_sn
+      height: 79
+      id: '1000000000014'
+      position:
+        x: 742.1141672700217
+        y: -103.67572041698224
+      positionAbsolute:
+        x: 742.1141672700217
+        y: -103.67572041698224
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -1256,6 +1451,7 @@ workflow:
 
           DEFAULT_CONFIDENCE = 60
           LOW_EVIDENCE_MAX_CONFIDENCE = 40
+          LOW_INPUT_QUALITY_MAX_CONFIDENCE = 35
           CITATION_DEFAULT_CLAIM = '未命名结论'
           CITATION_DEFAULT_SOURCE = '未知来源'
           CITATION_DEFAULT_QUOTE = '未提供引用片段'
@@ -1329,7 +1525,12 @@ workflow:
               n7_text: str,
               n8_text: str,
               n9_text: str,
-              consistency_warnings: list
+              consistency_warnings: list,
+              input_quality_score: int = 100,
+              input_quality_level: str = 'high',
+              input_quality_issues: list = None,
+              input_quality_recommendation: str = '',
+              input_quality_should_proceed: bool = True
           ) -> dict:
               citation_fallback = CITATION_FALLBACK
 
@@ -1385,6 +1586,26 @@ workflow:
               if missing_required_fields:
                   audit_metrics['risk_tips'].append('核心字段缺失：' + ', '.join(missing_required_fields))
 
+              if str(input_quality_level).strip() in ('low', 'critical'):
+                  audit_metrics['risk_tips'].append(f'输入质量等级为{input_quality_level}，建议人工重点复核。')
+                  if normalized_score > LOW_INPUT_QUALITY_MAX_CONFIDENCE:
+                      normalized_score = LOW_INPUT_QUALITY_MAX_CONFIDENCE
+                      audit_metrics['responsibility_confidence'] = normalized_score
+                      audit_metrics['risk_tips'].append(
+                          f'输入质量较低，responsibility_confidence 已按上限 {LOW_INPUT_QUALITY_MAX_CONFIDENCE} 限制。'
+                      )
+
+              if not bool(input_quality_should_proceed):
+                  audit_metrics['risk_tips'].append('输入质量门控建议暂停自动生成并转人工处理。')
+
+              for issue in _ensure_list(input_quality_issues):
+                  issue_text = str(issue).strip()
+                  if issue_text:
+                      audit_metrics['risk_tips'].append('输入质量问题：' + issue_text)
+
+              if str(input_quality_recommendation).strip():
+                  audit_metrics['risk_tips'].append('输入质量建议：' + str(input_quality_recommendation).strip())
+
               for tip in _ensure_list(consistency_warnings):
                   if str(tip).strip():
                       audit_metrics['risk_tips'].append(str(tip).strip())
@@ -1433,7 +1654,14 @@ workflow:
                       'product_retrieval_notes': product_retrieval_notes,
                       'history_cases_snippets': history_cases_snippets,
                       'product_knowledge_snippets': product_knowledge_snippets,
-                      'consistency_warnings': _ensure_list(consistency_warnings)
+                      'consistency_warnings': _ensure_list(consistency_warnings),
+                      'input_quality': {
+                          'score': input_quality_score,
+                          'level': input_quality_level,
+                          'issues': _ensure_list(input_quality_issues),
+                          'recommendation': input_quality_recommendation,
+                          'should_proceed': bool(input_quality_should_proceed)
+                      }
                   }
               }
 
@@ -1441,7 +1669,7 @@ workflow:
                   'final_json': json.dumps(final_json, ensure_ascii=False, indent=2)
               }
         code_language: python3
-        desc: 汇总最终 JSON（12节点输出）
+        desc: 汇总最终 JSON（含输入质量门控、证据门控、置信度约束）
         outputs:
           final_json:
             children: null
@@ -1450,6 +1678,26 @@ workflow:
         title: assemble_final_json
         type: code
         variables:
+        - value_selector:
+          - '1000000000014'
+          - quality_score
+          variable: input_quality_score
+        - value_selector:
+          - '1000000000014'
+          - quality_level
+          variable: input_quality_level
+        - value_selector:
+          - '1000000000014'
+          - quality_issues
+          variable: input_quality_issues
+        - value_selector:
+          - '1000000000014'
+          - recommendation
+          variable: input_quality_recommendation
+        - value_selector:
+          - '1000000000014'
+          - should_proceed
+          variable: input_quality_should_proceed
         - value_selector:
           - '1000000000002'
           - report_id
